@@ -16,7 +16,30 @@ let selectedProduct = null;
 let currentAuthEmail = null; 
 let currentLanguage = 'my';
 let languages = {};
-// ... (ကျန်တဲ့ code များ)
+// **[script.js ၏ အစောပိုင်းပိုင်းတွင် ထည့်သွင်းပါ]**
+
+// Magic Link/OTP ဖြင့် Login ပြီးဆုံးကြောင်း စစ်ဆေးသော Code
+supabase.auth.onAuthStateChange(async (event, session) => {
+    // ဤ event သည် Magic Link နှိပ်ပြီး Website သို့ ပြန်ရောက်လာသည့်အခါ အလုပ်လုပ်သည်။
+    if (event === 'SIGNED_IN' && session) {
+        // Login အောင်မြင်ပါက Modal များကို ပိတ်ပြီး Session ကို စတင် load မည်။
+        closeModal('authModal');
+        // loadUserSession() ကို ချက်ချင်း ခေါ်ပေးခြင်းဖြင့် User Data ကို load မည်။
+        await loadUserSession(); 
+        
+        // Admin ဖြစ်မဖြစ် စစ်ပြီး သက်ဆိုင်ရာ Page သို့ Redirect လုပ်သည်
+        if (currentUser && currentUser.is_admin) {
+            window.location.href = 'admin.html';
+        } else {
+             // Home Page သို့မဟုတ် လိုအပ်သော Page သို့ ပြန်ပို့သည်
+             window.location.href = 'index.html'; 
+        }
+    }
+});
+
+// ဒါ့အပြင် Load Product တွေ မလုပ်ခင်မှာ Session အရင်စစ်ပါ။
+loadUserSession(); 
+
 
 // ===============================================
 // AUTHENTICATION FUNCTIONS
