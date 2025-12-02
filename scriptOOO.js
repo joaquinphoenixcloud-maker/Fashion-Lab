@@ -1,6 +1,6 @@
 // CONFIG
-const SUPABASE_URL = 'https://hfsvxmnhoylhzbzvamiq.supabase.co'; 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhmc3Z4bW5ob3lsaHpienZhbWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NjIzNzEsImV4cCI6MjA3OTEzODM3MX0.J37qWQaKqecVsmGWWj63CyClVDup6KAD24iZVjIIL-0'; 
+const SUPABASE_URL = 'https://kfculpfelkfzigrptuae.supabase.co'; 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmY3VscGZlbGtmemlncnB0dWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MzMwMjEsImV4cCI6MjA4MDIwOTAyMX0.HwFdPcWYRAwcAvAxTHceEFNQtmxpq6h01gDgfoht4es'; 
 const BOT_TOKEN = '8180483853:AAGU6BHy2Ws-PboyopehdBFkWY5kpedJn6Y'; 
 const CHAT_ID = '-5098597126'; 
 
@@ -450,4 +450,306 @@ async function verifyOTP() {
         });
 
         if (error) {
+            showSnackbar(`Error verifying OTP: ${error.message}`, 'error');
+            console.error('Verify OTP Error:', error);
+            return;
+        }
+        
+        if (data.session) {
+            await fetchUserProfile(data.user.id);
+            updateUserUI();
+            showSnackbar('Login successful!', 'success');
+            // If new user, prompt for name update
+            if (!currentUser || !currentUser.name) {
+                showSnackbar('Please enter your name to complete your profile.', 'info');
+            }
+        }
+        
+    } catch (e) {
+        showSnackbar('An unexpected error occurred.', 'error');
+        console.error('Verify OTP Catch:', e);
+    }
+}
+
+async function updateProfile() {
+    if (!currentUser || !currentUser.id) {
+        showSnackbar('Not logged in. Please try to log in again.', 'error');
+        return;
+    }
+    const newName = document.getElementById('nameInput').value.trim();
+    if (!newName) { showSnackbar('Name cannot be empty.', 'error'); return; }
+
+    const profileData = { id: currentUser.id, phone: currentUser.phone, name: newName };
+
+    try {
+        const { error } = await supabase
+            .from('users')
+            .upsert([profileData]);
+            
+        if (error) {
+            showSnackbar(`Error updating profile: ${error.message}`, 'error');
+            return;
+        }
+        
+        currentUser.name = newName;
+        updateUserUI();
+        showSnackbar('Profile updated successfully!', 'success');
+        
+    } catch (e) {
+        showSnackbar('An unexpected error occurred during profile update.', 'error');
+        console.error('Profile Update Catch:', e);
+    }
+}
+
+async function doLogout() {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        showSnackbar(`Logout Error: ${error.message}`, 'error');
+    } else {
+        currentUser = null;
+        updateUserUI();
+        closeModal('authModal');
+        showSnackbar('Logged out successfully.', 'success');
+    }
+}
+
+
+// --- ORDERING ---
+function openOrderModal() {
+    if (!currentUser || !currentUser.name) {
+        showSnackbar('Please log in and complete your profile first.', 'info');
+        closeModal('detailModal');
+        checkAuth(); 
+        return;
+    }
+
+    if (!selectedProduct) return;
+    
+    const translatedName = selectedProduct.name_translations ? JSON.parse(selectedProduct.name_translations)[currentLang] || selectedProduct.name : selectedProduct.name;
+
+    document.getElementById('orderProductDisplay').innerHTML = `
+        <img src="${selectedProduct.image_url}" style="width:60px; height:60px; object-fit:cover; float:left; margin-right:10px;">
+        <div style="font-weight:bold;">${translatedName}</div>
+        <div style="color:var(--accent-color);">${selectedProduct.price}</div>
+        <div style="clear:both;"></div>
+    `;
+
+    // Prefill form
+    document.getElementById('contactPhoneInput').value = currentUser.phone;
+    document.getElementById('addressInput').value = '';
+    document.getElementById('noteInput').value = '';
+    document.getElementById('slipInput').value = '';
+    slipFile = null;
+    document.getElementById('sendBtn').disabled = true;
+
+    closeModal('detailModal');
+    document.getElementById('orderModal').style.display = 'flex';
+}
+
+function checkSlipFile() {
+    const input = document.getElementById('slipInput');
+    slipFile = input.files[0];
+    document.getElementById('sendBtn').disabled = !slipFile;
+}
+
+async function sendOrder() {
+    if (!currentUser || !selectedProduct || !slipFile) {
+        showSnackbar('Missing order data (User/Product/Slip).', 'error');
+        return;
+    }
+    
+    const address = document.getElementById('addressInput').value.trim();
+    const phone = document.getElementById('contactPhoneInput').value.trim();
+    const note = document.getElementById('noteInput').value.trim();
+
+    if (!address || !phone) {
+        showSnackbar('Address and Contact Phone are required.', 'error');
+        return;
+    }
+
+    // 1. Upload Slip
+    const filename = `${currentUser.id}_${Date.now()}.jpg`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('slips')
+        .upload(filename, slipFile);
+        
+    if (uploadError) {
+        showSnackbar(`Error uploading slip: ${uploadError.message}`, 'error');
+        return;
+    }
+    
+    const slipURL = `${SUPABASE_URL}/storage/v1/object/public/slips/${filename}`;
+
+    // 2. Insert Order to Supabase
+    const orderData = {
+        user_id: currentUser.id,
+        product_id: selectedProduct.id,
+        item_name: selectedProduct.name,
+        price: selectedProduct.price,
+        customer_name: currentUser.name,
+        customer_phone: phone,
+        address: address,
+        note: note,
+        slip_url: slipURL,
+        status: 'pending' // Initial status
+    };
+
+    const { data: orderDataRes, error: orderError } = await supabase
+        .from('orders')
+        .insert([orderData])
+        .select()
+        .single();
+        
+    if (orderError) {
+        showSnackbar(`Error saving order: ${orderError.message}`, 'error');
+        // Optional: Delete the uploaded slip if order insertion fails
+        await supabase.storage.from('slips').remove([filename]);
+        return;
+    }
+
+    closeModal('orderModal');
+    document.getElementById('successModal').style.display = 'flex';
+    showSnackbar('Order sent successfully! Waiting for admin confirmation.', 'success');
+    
+    // 3. Send Telegram Notification (Optional but good practice)
+    const telegramMessage = `
+**🛍️ New Order Received!**
+*Order ID:* ${orderDataRes.id}
+*Item:* ${selectedProduct.name}
+*Price:* ${selectedProduct.price}
+*Customer:* ${currentUser.name} (${phone})
+*Address:* ${address}
+*Note:* ${note || 'N/A'}
+*Slip:* ${slipURL}
+    `;
+    await sendTelegramNotification(telegramMessage);
+}
+
+// --- HISTORY ---
+function openHistoryModal() {
+    if (!currentUser) {
+        showSnackbar('Please log in to view order history.', 'info');
+        checkAuth();
+        return;
+    }
+    document.getElementById('historyModal').style.display = 'flex';
+    loadOrderHistory();
+}
+
+async function loadOrderHistory() {
+    const con = document.getElementById('orderHistoryList');
+    con.innerHTML = '<p style="text-align:center;">Loading history...</p>';
+    
+    let { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', {ascending:false});
+        
+    if(error) { con.innerHTML = `<p style="color:red; text-align:center;">Error: ${error.message}</p>`; return; }
+    
+    if(!data || data.length === 0) { con.innerHTML = '<p style="text-align:center;">No order history found.</p>'; return; }
+    
+    let html = '';
+    data.forEach(o => {
+        let statusText = 'Pending';
+        let statusColor = '#03a9f4'; // Blue
+        if(o.status === 'reject') { statusText = 'Rejected'; statusColor = '#d32f2f'; } // Red
+        else if(o.status === 'coming') { statusText = 'Coming Soon'; statusColor = '#ffc107'; } // Yellow
+        else if(o.status === 'owned') { statusText = 'Delivered/Owned'; statusColor = '#4CAF50'; } // Green
+
+        html += `
+            <div class="history-item">
+                <div>
+                    <div style="font-weight:bold;">${o.item_name}</div>
+                    <small style="color:var(--accent-color);">${o.price}</small>
+                </div>
+                <div style="text-align:right;">
+                    <div style="color:${statusColor}; font-weight:bold;">${statusText}</div>
+                    <small>Order ID: #${o.id}</small>
+                </div>
+            </div>
+        `;
+    });
+    con.innerHTML = html;
+}
+
+// --- TELEGRAM CHAT ---
+function openChatModal() {
+    document.getElementById('chatModal').style.display = 'flex';
+    document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+}
+
+function sendMessage() {
+    if (!currentUser || !currentUser.name) {
+        showSnackbar('Please log in to chat.', 'info');
+        closeModal('chatModal');
+        checkAuth();
+        return;
+    }
+
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    if (!message) return;
+
+    // Display user message in chatbox
+    const chatBox = document.getElementById('chatBox');
+    const userMsg = document.createElement('div');
+    userMsg.className = 'chat-message user-message';
+    userMsg.innerText = message;
+    chatBox.appendChild(userMsg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // Send to Telegram
+    const telegramMessage = `**💬 User Chat Message**\n*User:* ${currentUser.name} (${currentUser.phone})\n*Message:* ${message}`;
+    sendTelegramNotification(telegramMessage);
+
+    input.value = '';
+}
+
+async function sendTelegramNotification(message) {
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
+    try {
+        await fetch(url);
+    } catch (e) {
+        console.error("Failed to send Telegram notification:", e);
+    }
+}
+
+
+// --- WINDOW ONLOAD ---
+window.onload = async function() {
+    // Language Setup
+    const langSelect = document.getElementById('langSelect');
+    const savedLang = localStorage.getItem('kshop_lang');
+    if (savedLang && currentTranslations[savedLang]) {
+        currentLang = savedLang;
+        langSelect.value = currentLang;
+        applyLanguage(currentLang);
+    } else if (langSelect.options.length > 0 && currentTranslations[currentLang]) {
+        langSelect.value = currentLang;
+        applyLanguage(currentLang);
+    }
+    
+    // Check for existing Admin session
+    if(localStorage.getItem('kshop_admin') === 'true') {
+        isAdmin = true;
+    }
+    
+    // Check for existing Supabase session and load profile
+    await loadUserSession();
+    
+    loadProducts('all', currentTranslations[currentLang].all, 'women'); 
+    updateUserUI();
+    loadBanners(); 
+    
+    // Theme Setup
+    if(localStorage.getItem('kshop_dark_mode') === 'on') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('darkModeToggle').checked = true;
+    }
+}
+
+
+    
      
