@@ -7,10 +7,14 @@
     margin-bottom: 10px;
     border-left: 5px solid var(--accent-color);
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    /* Dark mode support and smooth transitions */
+    transition: background 0.3s, border-left 0.3s; 
 }
 .order-item h4 {
     margin-top: 0;
     color: var(--accent-color);
+    border-bottom: 1px solid rgba(153, 153, 153, 0.1); /* Separator for title */
+    padding-bottom: 5px;
 }
 .order-item p {
     margin: 5px 0;
@@ -22,13 +26,21 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    background-color: #f44336; /* Red for new */
     color: white;
+    font-weight: bold;
+    transition: background-color 0.2s;
 }
-.order-status-btn.processed {
-    background-color: #2196f3; /* Blue for processed */
+
+/* Status Colors for Admin UI (Matching script.js logic) */
+.order-status-btn.neworder, .order-status-btn.pending {
+    background-color: #f44336; /* Red: New or Waiting for payment */
+}
+.order-status-btn.processing {
+    background-color: #ff9800; /* Orange: Currently preparing */
 }
 .order-status-btn.shipped {
-    background-color: #4CAF50; /* Green for shipped */
+    background-color: #2196f3; /* Blue: Out for delivery */
 }
-/* Re-use .input-group and .order-btn from existing CSS */
+.order-status-btn.delivered {
+    background-color: #4CAF50; /* Green: Complete */
+}
