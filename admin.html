@@ -6,11 +6,10 @@
     <title>Admin Panel - Fashion Lab</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="styleOOO.css"> 
+    <link rel="stylesheet" href="styleOOO.css"> <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Admin-specific styles will be added to styleOOO.css or here */
+        /* Admin-specific styles (Minimal inline styles) */
         .admin-header {
             background-color: var(--header-bg);
             color: var(--header-text);
@@ -23,7 +22,7 @@
         .admin-tabs {
             display: flex;
             background: var(--card-bg);
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #333;
         }
         .admin-tab {
             padding: 15px 25px;
@@ -39,11 +38,12 @@
         }
         .admin-content-section {
             padding: 20px;
-            display: none; /* Default hidden */
+            display: none; 
         }
         .admin-content-section.active {
             display: block;
         }
+        /* Reused Styles (order-item, order-status-btn will be defined in styleOOO.css) */
     </style>
 </head>
 <body class="dark-mode" id="body" onload="checkAdminAccess()">
@@ -88,7 +88,7 @@
 
     <div id="snackbar"></div>
 
-    <script src="scriptOOO.js"></script>
+    <script src="script.js"></script>
     
 </body>
 </html>
