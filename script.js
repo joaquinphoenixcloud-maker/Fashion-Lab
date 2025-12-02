@@ -811,7 +811,11 @@ function switchTab(t) {
     else { 
         document.querySelectorAll('.tab')[1].classList.add('active'); 
         document.getElementById('men-menu').classList.add('active'); 
-    // --- ADMIN FUNCTIONS ---
+    }
+} // <--- switchTab function ရဲ့ ပိတ်ကွင်း (အဆုံးသတ်)
+
+// --- ADMIN FUNCTIONS ---
+// ဤ block တစ်ခုလုံးသည် switchTab function ၏ အပြင်ဘက် (global scope) တွင် ရှိရမည်။
 
 // 1. Admin Access Check
 // NOTE: This assumes you have an 'is_admin' column (boolean) in your 'users' table 
@@ -957,7 +961,4 @@ async function addProduct(event) {
         // loadProducts('all', 'All Products', 'women'); // Main page ကို refresh လုပ်ဖို့
     }
     */
-}
-
-    }
 }
