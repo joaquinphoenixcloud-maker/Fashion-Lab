@@ -1,21 +1,106 @@
 // CONFIG
+// (Supabase URL/Key, BOT_TOKEN, CHAT_ID တို့ကို မပြောင်းလဲပါ)
 const SUPABASE_URL = 'https://kfculpfelkfzigrptuae.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmY3VscGZlbGtmemlncnB0dWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MzMwMjEsImV4cCI6MjA4MDIwOTAyMX0.HwFdPcWYRAwcAvAxTHceEFNQtmxpq6h01gDgfoht4es'; 
 const BOT_TOKEN = '8180483853:AAGU6BHy2Ws-PboyopehdBFkWY5kpedJn6Y'; 
 const CHAT_ID = '-5098597126'; 
 
-// Custom domain used for Supabase Auth (OTP will use the phone number directly if phone auth is enabled in Supabase)
-// NOTE: If Supabase Phone Auth is disabled, this code will fail.
-// We are assuming Phone Auth is enabled in the Supabase project.
-const AUTH_DOMAIN = '@kshop.com'; 
+// **[ပြင်ဆင်ပြီး]**: Phone Auth Domain ကို ဖြုတ်လိုက်သည်။
+// const AUTH_DOMAIN = '@kshop.com'; 
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentProducts = [];
-// currentUser now stores the profile data fetched from the 'users' table
 let currentUser = null; 
 let selectedProduct = null; 
-// Variable to hold the phone number during the OTP flow
-let currentAuthPhone = null; 
+// **[ပြင်ဆင်ပြီး]**: currentAuthPhone အစား currentAuthEmail
+let currentAuthEmail = null; 
+let currentLanguage = 'my';
+let languages = {};
+// ... (ကျန်တဲ့ code များ)
+
+// ===============================================
+// AUTHENTICATION FUNCTIONS
+// ===============================================
+
+// **[ပြင်ဆင်ပြီး]**: startAuth function ကို Email Auth အဖြစ် ပြောင်းလဲထားသည်
+async function startAuth() {
+    const email = document.getElementById('emailInput').value.trim(); // emailInput မှ တန်ဖိုးယူသည်
+    
+    if (!email) {
+        showSnackbar(getLocalizedText('email_required'), 'error'); 
+        return;
+    }
+
+    currentAuthEmail = email; // Email ကို သိမ်းဆည်း
+    
+    // Email ကို OTP/Magic Link ပို့ရန်
+    const { data, error } = await supabase.auth.signInWithOtp({ email: currentAuthEmail }); 
+    
+    if (error) {
+        showSnackbar(getLocalizedText('auth_fail') + ': ' + error.message, 'error');
+        console.error(error);
+    } else {
+        // UI ကို OTP Form သို့ ပြောင်း
+        document.getElementById('authForm').style.display = 'none';
+        document.getElementById('otpForm').style.display = 'block';
+        showSnackbar(getLocalizedText('otp_sent_to_email'), 'success');
+    }
+}
+
+// **[ပြင်ဆင်ပြီး]**: verifyOtp function ကို Email Auth အဖြစ် ပြောင်းလဲထားသည်
+async function verifyOtp(type) {
+    const otp = document.getElementById('otpInput').value.trim();
+    if (!otp) return;
+
+    // Email နဲ့ code ကို သုံးပြီး OTP စစ်ဆေးသည်
+    const { data: userData, error } = await supabase.auth.verifyOtp({ 
+        email: currentAuthEmail, 
+        token: otp, // code ကို token အနေဖြင့် ပို့သည်
+        type: 'email' // type ကို email အဖြစ် သတ်မှတ်
+    });
+
+    if (error) {
+        showSnackbar(getLocalizedText('otp_invalid'), 'error');
+        console.error(error);
+        return;
+    }
+    
+    // ... (ကျန်သော Logic များ)
+    const user = userData.user;
+    const userId = user.id;
+    const userEmail = user.email; // Email ကို ရယူ
+
+    if (type === 'register') {
+        // ... (Registration Logic)
+        const name = document.getElementById('registerName').value.trim();
+        // **[ဖုန်းနံပါတ်ဖြုတ်ပြီး]**: ဖုန်းနံပါတ်ကို မလိုအပ်တော့ပါ
+        // const phone = document.getElementById('registerPhone').value.trim(); 
+        
+        if (!name) {
+             showSnackbar(getLocalizedText('name_required'), 'error');
+             return;
+        }
+
+        const { error: insertError } = await supabase
+            .from('users')
+            .insert([
+                // NOTE: phone column ကို Supabase Table ထဲကနေ ဖျက်ပြီးသားဆိုရင် ဒီနေရာကိုလည်း ဖျက်ရပါမယ်။
+                { id: userId, email: userEmail, name: name } 
+            ]);
+
+        // ... (Error handling)
+        // ...
+    }
+    // ...
+}
+
+// ... (ကျန်သော Functions များ)
+
+// **[ပြင်ဆင်ပြီး]**: Logout function ကို index.html သို့ ပြောင်းလဲ
+function logout() {
+    doLogout(); 
+    window.location.href = 'index.html'; 
+}
 
 // --- TRANSLATION MAP (EN, MY, TH) ---
 const currentTranslations = {
