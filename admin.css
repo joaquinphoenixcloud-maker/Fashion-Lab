@@ -1,0 +1,118 @@
+:root {
+    --sidebar-bg: #2c3e50; /* Dark Blue/Gray */
+    --sidebar-text: #ecf0f1;
+    --accent-color: #e74c3c; /* Red for Logout */
+    --header-color: #34495e; 
+    --main-bg: #ecf0f1; /* Light Gray Background */
+    --active-bg: #34495e; /* Slightly darker when active */
+}
+
+body {
+    font-family: 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--main-bg);
+    display: flex; /* အလယ်ဗဟိုမှာ ထားဖို့ */
+}
+
+.admin-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Sidebar / Menu Panel */
+.sidebar {
+    width: 250px;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    padding: 0;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-header {
+    padding: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+    background: var(--header-color);
+    text-align: center;
+}
+
+.menu-item {
+    padding: 15px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.menu-item i {
+    margin-right: 10px;
+}
+
+.menu-item:hover {
+    background: #34495e; /* Hover effect */
+}
+
+.menu-item.active {
+    background: var(--active-bg);
+    border-left: 5px solid #3498db; /* Blue border for active */
+}
+
+.logout-btn {
+    background: var(--accent-color);
+    color: white;
+    margin-top: auto; /* အောက်ဆုံးကို တွန်းပို့ဖို့ */
+    text-align: center;
+    padding: 15px;
+}
+.logout-btn:hover { background: #c0392b; }
+
+
+/* Main Content Area */
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+h2 {
+    color: var(--header-color);
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+/* Table Styles */
+#ordersTable, #productsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#ordersTable th, #productsTable th {
+    background: var(--header-color);
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+#ordersTable td, #productsTable td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+}
+
+/* ... ကျန်တဲ့ စတိုင်လ်များ (Filter Buttons, Modals) ထပ်ထည့်ရပါမယ် ... */
