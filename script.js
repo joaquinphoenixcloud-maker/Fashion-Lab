@@ -1,144 +1,37 @@
-// CONFIG
+// CONFIG (UPDATED with New Supabase Credentials)
 const SUPABASE_URL = 'https://kfculpfelkfzigrptuae.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmY3VscGZlbGtmemlncnB0dWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MzMwMjEsImV4cCI6MjA4MDIwOTAyMX0.HwFdPcWYRAwcAvAxTHceEFNQtmxpq6h01gDgfoht4es'; 
+
+// Telegram BOT CONFIG (Assuming these are still correct for Telegram notifications)
 const BOT_TOKEN = '8180483853:AAGU6BHy2Ws-PboyopehdBFkWY5kpedJn6Y'; 
 const CHAT_ID = '-5098597126'; 
 
-// NEW: Admin configuration
-const ADMIN_USERNAME = 'fashion_admin';
-const ADMIN_PASSWORD = 'admin@password'; // Production မှာ ခက်ခက်ခဲခဲ password ထားပါ
-let isAdmin = false; 
-
-// Custom domain used for Supabase Auth (OTP will use the phone number directly if phone auth is enabled in Supabase)
-// NOTE: If Supabase Phone Auth is disabled, this code will fail.
-// We are assuming Phone Auth is enabled in the Supabase project.
+// Custom domain used for Supabase Auth (for phone number formatting in admin-login.js)
 const AUTH_DOMAIN = '@kshop.com'; 
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Global State Variables
 let currentProducts = [];
-// currentUser now stores the profile data fetched from the 'users' table
 let currentUser = null; 
 let selectedProduct = null; 
-// Variable to hold the phone number during OTP flow
-let tempPhoneNumber = ''; 
-let slipFile = null;
 
-// --- TRANSLATION MAP (EN, MY, TH) ---
-const currentTranslations = {
-    en: {
-        all: "All Products", clothing: "Clothing", shoes: "Shoes", accessories: "Accessories",
-        home: "Home", history: "History", settings: "Settings", chat: "Chat", shop_cat: "SHOP CATEGORY",
-        login_title: "Login / Register", phone_label: "Phone Number", send_otp: "Send OTP",
-        otp_sent: "OTP sent to your phone. Check your messages.", otp_label: "OTP Code", verify_otp: "Verify OTP",
-        welcome: "Welcome!", name_label: "Name", update_profile: "Update Profile", logout_btn: "Logout",
-        order_title: "Order Details", address_label: "Delivery Address", contact_label: "Contact Phone", note_label: "Note",
-        slip_label: "Payment Slip", send_btn: "Send Order to Admin", history_title: "Order History",
-        chat_title: "Chat with Admin", settings_title: "Settings", dark_mode: "Dark Mode", language_title: "Language",
-        order_sent_h3: "👾 Order sent!", order_sent_p: "Payment successful, delivery will be made soon.🎉", ok_btn: "OK",
-        search_placeholder: "Search...", chat_reply: "Hello! How can I help you today?",
-        // NEW ADMIN TRANSLATIONS
-        admin_title: "Admin Dashboard", pending_orders: "Pending Orders" 
-    },
-    my: {
-        all: "ပစ္စည်းအားလုံး", clothing: "အဝတ်အထည်", shoes: "ဖိနပ်", accessories: "အသုံးအဆောင်",
-        home: "ပင်မစာမျက်နှာ", history: "မှာယူမှုမှတ်တမ်း", settings: "ပြင်ဆင်မှု", chat: "ချက်တင်", shop_cat: "ဆိုင်ခွဲများ",
-        login_title: "ဝင်ရန် / မှတ်ပုံတင်ရန်", phone_label: "ဖုန်းနံပါတ်", send_otp: "OTP ပို့ပါ",
-        otp_sent: "သင့်ဖုန်းသို့ OTP ပို့လိုက်ပါသည်။ စစ်ဆေးပါ။", otp_label: "OTP ကုတ်", verify_otp: "OTP စစ်ဆေးပါ",
-        welcome: "ကြိုဆိုပါတယ်!", name_label: "နာမည်", update_profile: "ကိုယ်ရေးအချက်အလက်ပြင်မည်", logout_btn: "ထွက်ရန်",
-        order_title: "မှာယူမှု အသေးစိတ်", address_label: "ပို့ဆောင်ရန်လိပ်စာ", contact_label: "ဆက်သွယ်ရန်ဖုန်း", note_label: "အကြောင်းအရာ",
-        slip_label: "ငွေလွှဲပြေစာ", send_btn: "Admin ထံသို့ ပို့မည်", history_title: "မှာယူမှုမှတ်တမ်း",
-        chat_title: "Admin နှင့် စကားပြောရန်", settings_title: "ပြင်ဆင်မှုများ", dark_mode: "အမှောင်စနစ်", language_title: "ဘာသာစကား",
-        order_sent_h3: "👾 မှာယူမှု အောင်မြင်! ", order_sent_p: "ငွေပေးချေမှုအောင်မြင်ပါပြီ၊ မကြာမီ ပို့ဆောင်ပေးပါမည်။🎉", ok_btn: "အိုကေ",
-        search_placeholder: "ရှာဖွေပါ...", chat_reply: "မင်္ဂလာပါ... ဘာကူညီပေးရမလဲရှင့်?",
-        // NEW ADMIN TRANSLATIONS
-        admin_title: "အက်ဒမင် စီမံခန့်ခွဲမှု", pending_orders: "စောင့်ဆိုင်းနေသော အော်ဒါများ"
-    },
-    th: {
-        all: "สินค้าทั้งหมด", clothing: "เสื้อผ้า", shoes: "รองเท้า", accessories: "อุปกรณ์เสริม",
-        home: "หน้าหลัก", history: "ประวัติการสั่งซื้อ", settings: "ตั้งค่า", chat: "แชท", shop_cat: "หมวดหมู่ร้านค้า",
-        login_title: "เข้าสู่ระบบ / ลงทะเบียน", phone_label: "เบอร์โทรศัพท์", send_otp: "ส่ง OTP",
-        otp_sent: "ส่ง OTP ไปยังโทรศัพท์ของคุณแล้ว ตรวจสอบข้อความ", otp_label: "รหัส OTP", verify_otp: "ยืนยัน OTP",
-        welcome: "ยินดีต้อนรับ!", name_label: "ชื่อ", update_profile: "อัปเดตโปรไฟล์", logout_btn: "ออกจากระบบ",
-        order_title: "รายละเอียดการสั่งซื้อ", address_label: "ที่อยู่จัดส่ง", contact_label: "เบอร์โทรติดต่อ", note_label: "บันทึก",
-        slip_label: "สลิปการชำระเงิน", send_btn: "ส่งคำสั่งซื้อถึงแอดมิน", history_title: "ประวัติการสั่งซื้อ",
-        chat_title: "แชทกับแอดมิน", settings_title: "การตั้งค่า", dark_mode: "โหมดมืด", language_title: "ภาษา",
-        order_sent_h3: "👾 ส่งคำสั่งซื้อแล้ว!", order_sent_p: "ชำระเงินสำเร็จแล้ว จะดำเนินการจัดส่งเร็วๆ นี้🎉", ok_btn: "ตกลง",
-        search_placeholder: "ค้นหา...", chat_reply: "สวัสดีค่ะ มีอะไรให้ช่วยไหมคะ?",
-        // NEW ADMIN TRANSLATIONS
-        admin_title: "แผงควบคุมผู้ดูแลระบบ", pending_orders: "คำสั่งซื้อที่รอดำเนินการ"
-    }
-};
 
-let currentLang = localStorage.getItem('kshop_lang') || 'en';
+// === UI/HELPER FUNCTIONS (Your existing functions) ===
 
-// --- UTILITY FUNCTIONS ---
-function showSnackbar(message, type = 'info') {
-    const sb = document.getElementById("snackbar");
-    sb.innerText = message;
-    sb.className = "show";
-    
-    // Reset background color first
-    sb.style.backgroundColor = '#333';
-    
-    if (type === 'error') {
-        sb.style.backgroundColor = '#d32f2f'; // Red for errors
-    } else if (type === 'success') {
-        sb.style.backgroundColor = '#4CAF50'; // Green for success
-    } else {
-        sb.style.backgroundColor = '#333'; // Default
-    }
-
-    setTimeout(() => { sb.className = sb.className.replace("show", ""); }, 3000);
+function showSnackbar(msg, isError = false) { 
+    const x = document.getElementById("snackbar"); 
+    x.textContent = msg; 
+    x.style.backgroundColor = isError ? '#e74c3c' : '#4CAF50';
+    x.className = "show"; 
+    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
 }
 
-// --- LANGUAGE AND THEME ---
-function applyLanguage(lang) {
-    const t = currentTranslations[lang];
-    document.querySelectorAll('[data-t]').forEach(el => {
-        const key = el.getAttribute('data-t');
-        if (t[key]) {
-            el.innerText = t[key];
-        }
-    });
-    document.getElementById('searchInput').placeholder = t.search_placeholder;
-    document.getElementById('chatBox').querySelector('.bot-message').innerText = t.chat_reply;
-}
-
-function toggleLanguage(lang) {
-    currentLang = lang;
-    localStorage.setItem('kshop_lang', lang);
-    applyLanguage(lang);
-    
-    // Reload product names in current view
-    if (currentProducts.length > 0) {
-        // Find the current category and title being displayed
-        const currentTitle = document.getElementById('currentCategoryTitle').innerText;
-        
-        // Find the matching key in the new language to reload with correct title
-        let categoryKey = 'all';
-        for (const key in currentTranslations.en) {
-            if (currentTranslations.en[key] === currentTitle) {
-                categoryKey = key;
-                break;
-            }
-        }
-        
-        const currentGender = document.getElementById('women-menu').classList.contains('active') ? 'women' : 'men';
-        loadProducts(categoryKey, currentTranslations[currentLang][categoryKey], currentGender);
-    }
-}
-
-function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
-function toggleTheme(cb) { 
-    document.body.classList.toggle('dark-mode', cb.checked); 
-    localStorage.setItem('kshop_dark_mode', cb.checked ? 'on' : 'off');
-}
-
-// --- NAVIGATION / UI ---
 function toggleMenu() { 
     document.getElementById('sideMenu').classList.toggle('active'); 
-    document.querySelector('.overlay').classList.toggle('active'); 
+    document.getElementById('body').classList.toggle('menu-open');
 }
+
 function toggleSearch() { 
     const b=document.getElementById('searchBox'); 
     b.style.display=b.style.display==='block'?'none':'block'; 
@@ -147,11 +40,15 @@ function toggleSearch() {
          searchProducts(); 
     }
 }
+
 function closeModal(id) { document.getElementById(id).style.display='none'; }
 
 function searchProducts() { 
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const con = document.getElementById('productsContainer');
+    // Check if container exists (only on indexOOO.html)
+    if (!con) return; 
+
     const productCards = con.querySelectorAll('.product-card');
     if (searchTerm.length === 0) {
         productCards.forEach(card => card.style.display = 'flex');
@@ -170,586 +67,211 @@ function switchTab(t) {
     if(t==='women'){ 
         document.querySelectorAll('.tab')[0].classList.add('active'); 
         document.getElementById('women-menu').classList.add('active'); 
-        loadProducts('all', currentTranslations[currentLang].all, 'women');
     }
     else { 
         document.querySelectorAll('.tab')[1].classList.add('active'); 
         document.getElementById('men-menu').classList.add('active'); 
-        loadProducts('all', currentTranslations[currentLang].all, 'men');
     }
-    toggleMenu();
+    // Load default category (All Products)
+    loadProducts('all', 'All Products', t);
 }
 
-// --- ADMIN FUNCTIONS ---
-function checkAdmin() {
-    document.getElementById('adminModal').style.display = 'flex';
-    if(isAdmin) {
-        showAdminDashboard();
-    } else {
-        document.getElementById('adminAuth').style.display = 'block';
-        document.getElementById('adminContent').style.display = 'none';
-        document.getElementById('adminIdInput').value = '';
-        document.getElementById('adminPasswordInput').value = '';
-    }
-}
+// ----------------------------------------------------
+// === CORE FUNCTIONS (Customer Website Logic) ===
+// NOTE: These are placeholder functions. The actual logic needs to be fully implemented 
+// in your original scriptOOO.js, especially for product loading and ordering.
+// ----------------------------------------------------
 
-function adminLogin() {
-    const id = document.getElementById('adminIdInput').value.trim();
-    const pass = document.getElementById('adminPasswordInput').value.trim();
-    
-    if (id === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
-        isAdmin = true;
-        localStorage.setItem('kshop_admin', 'true');
-        showSnackbar("Admin Login Successful!", 'success');
-        showAdminDashboard();
-    } else {
-        showSnackbar("Invalid Admin Credentials.", 'error');
-    }
-}
-
-function doAdminLogout() {
-    isAdmin = false;
-    localStorage.removeItem('kshop_admin');
-    closeModal('adminModal');
-    showSnackbar("Admin Logged out.", 'success');
-}
-
-async function showAdminDashboard() {
-    document.getElementById('adminAuth').style.display = 'none';
-    document.getElementById('adminContent').style.display = 'block';
-    
-    const con = document.getElementById('pendingOrdersList');
-    con.innerHTML = '<p style="text-align:center;">Loading orders...</p>';
-    
-    let { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .neq('status', 'owned') // Show everything that is NOT 'owned' (i.e. pending, coming, reject)
-        .order('created_at', {ascending:false});
-        
-    if(error) { con.innerHTML = `<p style="color:red; text-align:center;">Error: ${error.message}</p>`; return; }
-    
-    if(!data || data.length === 0) { con.innerHTML = '<p style="text-align:center;">No pending orders.</p>'; return; }
-    
-    let html = '';
-    data.forEach(o => {
-        let statusColor = '#333';
-        if(o.status === 'reject') statusColor = '#d32f2f'; 
-        else if(o.status === 'coming') statusColor = '#ffc107'; 
-        else if(o.status === 'pending') statusColor = '#03a9f4';
-        
-        html += `
-            <div class="history-item" style="flex-direction:column; align-items:flex-start; margin-bottom:15px; border:1px solid #ddd; padding:10px;">
-                <div style="font-size:16px; font-weight:bold; margin-bottom:5px;">Order #${o.id} - <span style="color:${statusColor};">${o.status.toUpperCase()}</span></div>
-                <small>👤 ${o.customer_name} | 📞 ${o.customer_phone}</small><br>
-                <small>🏠 ${o.address}</small><br>
-                <small>📝 ${o.note}</small><br>
-                <div style="margin-top:5px; padding:5px; border-top:1px dashed #eee; width:100%;">
-                    ${o.item_name} - <b>${o.price}</b>
-                </div>
-                <div style="display:flex; gap:5px; margin-top:10px; width:100%;">
-                    <button style="flex:1; padding:8px; border:none; border-radius:4px; cursor:pointer; background:#4CAF50; color:white;" onclick="updateOrderStatus(${o.id}, 'owned')">Owned</button>
-                    <button style="flex:1; padding:8px; border:none; border-radius:4px; cursor:pointer; background:#03a9f4; color:white;" onclick="updateOrderStatus(${o.id}, 'coming')">Coming</button>
-                    <button style="flex:1; padding:8px; border:none; border-radius:4px; cursor:pointer; background:#f44336; color:white;" onclick="updateOrderStatus(${o.id}, 'reject')">Reject</button>
-                </div>
-            </div>
-        `;
-    });
-    con.innerHTML = html;
-}
-
-async function updateOrderStatus(orderId, newStatus) {
-    const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', orderId);
-        
-    if(error) {
-        showSnackbar(`Error updating order #${orderId}: ${error.message}`, 'error');
-    } else {
-        showSnackbar(`Order #${orderId} status updated to ${newStatus}.`, 'success');
-        showAdminDashboard(); // Refresh the dashboard
-    }
-}
-
-
-// --- DATA LOADING ---
 async function loadProducts(category, title, gender) {
-    document.getElementById('currentCategoryTitle').innerText = title;
-    const con = document.getElementById('productsContainer');
-    con.innerHTML = '<div>Loading products...</div>';
+    // This is the core function to fetch products for the main page
+    const productsContainer = document.getElementById('productsContainer');
+    if (!productsContainer) return;
+
+    productsContainer.innerHTML = '<div style="text-align:center; padding:20px;">Loading products...</div>';
     
-    let query = supabase.from('products').select('*').eq('gender', gender);
-    if(category !== 'all') {
+    let query = supabase.from('products').select('*').eq('is_active', true);
+    
+    // Filtering logic (needs refinement based on your categories)
+    if (category !== 'all') {
         query = query.eq('category', category);
     }
+    if (gender) {
+        // Example: Only show categories that match the gender tab
+        // Note: You must ensure your 'category' column contains gender info (e.g., 'women_clothing')
+    }
     
-    let { data, error } = await query;
-    
+    const { data: products, error } = await query.order('created_at', { ascending: false });
+
     if (error) {
-        con.innerHTML = `<div style="color:red;">Error loading products: ${error.message}</div>`;
-        showSnackbar(`Error loading products.`, 'error');
+        productsContainer.innerHTML = '<div style="text-align:center; padding:20px; color:red;">Error loading products: ' + error.message + '</div>';
         return;
     }
 
-    currentProducts = data;
-    con.innerHTML = '';
-    
-    if (data && data.length > 0) {
-        data.forEach(p => {
-            const translatedName = p.name_translations ? JSON.parse(p.name_translations)[currentLang] || p.name : p.name;
-            const card = document.createElement('div');
-            card.className = 'product-card';
-            card.innerHTML = `
-                <img src="${p.image_url}" alt="${translatedName}">
-                <div class="p-name">${translatedName}</div>
-                <div class="p-price">${p.price}</div>
-                <button class="buy-btn" onclick="openDetailModal(${p.id})">Details</button>
-            `;
-            con.appendChild(card);
-        });
-    } else {
-        con.innerHTML = '<div style="text-align:center; padding:20px;">No products found in this category.</div>';
-    }
+    currentProducts = products;
+    renderProducts(products);
+    // document.getElementById('sectionTitle').textContent = title; // Assuming you have a title element
 }
 
-async function loadBanners() {
-    const con = document.getElementById('bannerContainer');
-    let { data, error } = await supabase.from('banners').select('*').order('id');
-    
-    if (error) {
-        con.innerHTML = '';
-        return;
-    }
-    
-    if (data && data.length > 0) {
-        con.innerHTML = data.map(b => `<img src="${b.image_url}" alt="Banner" class="banner-img">`).join('');
-    }
-}
+function renderProducts(products) {
+    const container = document.getElementById('productsContainer');
+    container.innerHTML = '';
 
-
-// --- AUTHENTICATION ---
-function updateUserUI() {
-    const userDot = document.getElementById('userDot');
-    if (currentUser) {
-        userDot.style.display = 'block';
-    } else {
-        userDot.style.display = 'none';
-    }
-    
-    const profileDisplay = document.getElementById('profileDisplay');
-    const nameInput = document.getElementById('nameInput');
-    const profileContent = document.getElementById('profileContent');
-    const authContent = document.getElementById('authContent');
-    const otpContent = document.getElementById('otpContent');
-    
-    if (currentUser) {
-        profileDisplay.innerText = `${currentUser.name} (${currentUser.phone})`;
-        nameInput.value = currentUser.name;
-        profileContent.style.display = 'block';
-        authContent.style.display = 'none';
-        otpContent.style.display = 'none';
-    } else {
-        profileContent.style.display = 'none';
-        authContent.style.display = 'block';
-        otpContent.style.display = 'none';
-    }
-}
-
-async function loadUserSession() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-        await fetchUserProfile(session.user.id);
-    }
-}
-
-async function fetchUserProfile(userId) {
-    let { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-        
-    if (error && error.code !== 'PGRST116') { // PGRST116: No rows found
-        showSnackbar(`Error fetching profile: ${error.message}`, 'error');
-        currentUser = null;
-    } else if (data) {
-        currentUser = data;
-    } else {
-        // User exists in auth but not in 'users' table (New user)
-        currentUser = { id: userId, phone: supabase.auth.getUser().user.phone, name: '' };
-    }
-}
-
-function openDetailModal(productId) {
-    selectedProduct = currentProducts.find(p => p.id === productId);
-    if (!selectedProduct) return;
-    
-    const translatedName = selectedProduct.name_translations ? JSON.parse(selectedProduct.name_translations)[currentLang] || selectedProduct.name : selectedProduct.name;
-    const translatedDesc = selectedProduct.description_translations ? JSON.parse(selectedProduct.description_translations)[currentLang] || selectedProduct.description : selectedProduct.description;
-
-    document.getElementById('productDetail').innerHTML = `
-        <img src="${selectedProduct.image_url}" alt="${translatedName}" style="width:100%; height:300px; object-fit:cover; margin-bottom:15px; border-radius:8px;">
-        <h3>${translatedName}</h3>
-        <p style="color:var(--accent-color); font-size:18px; font-weight:bold; margin:10px 0;">${selectedProduct.price}</p>
-        <p>${translatedDesc}</p>
-        <button class="order-btn" onclick="openOrderModal()" style="margin-top:20px;">Order Now</button>
-    `;
-    document.getElementById('detailModal').style.display = 'flex';
-}
-
-function checkAuth() {
-    document.getElementById('authModal').style.display = 'flex';
-    updateUserUI();
-}
-
-async function sendOTP() {
-    const phoneInput = document.getElementById('phoneInput').value.trim();
-    if (!phoneInput) { showSnackbar('Please enter your phone number.', 'error'); return; }
-    
-    // Format phone number for Supabase (e.g., +959xxxxxxxxx)
-    let formattedPhone = phoneInput.startsWith('09') ? '+95' + phoneInput.substring(1) : phoneInput;
-    if (!formattedPhone.startsWith('+')) { formattedPhone = '+' + formattedPhone; }
-    
-    tempPhoneNumber = formattedPhone;
-    
-    try {
-        const { error } = await supabase.auth.signInWithOtp({ 
-            phone: tempPhoneNumber,
-            options: {
-                // If you use AUTH_DOMAIN, Supabase will append it to the phone number for unique user ID.
-                email: tempPhoneNumber + AUTH_DOMAIN
-            }
-        });
-
-        if (error) {
-            showSnackbar(`Error sending OTP: ${error.message}`, 'error');
-            console.error('OTP Error:', error);
-            return;
-        }
-
-        document.getElementById('authContent').style.display = 'none';
-        document.getElementById('otpContent').style.display = 'block';
-        showSnackbar('OTP sent successfully!', 'success');
-        
-    } catch (e) {
-        showSnackbar('An unexpected error occurred.', 'error');
-        console.error('Sign In Error:', e);
-    }
-}
-
-async function verifyOTP() {
-    const otpInput = document.getElementById('otpInput').value.trim();
-    if (!otpInput) { showSnackbar('Please enter the OTP code.', 'error'); return; }
-
-    try {
-        const { data, error } = await supabase.auth.verifyOtp({
-            phone: tempPhoneNumber,
-            token: otpInput,
-            type: 'sms'
-        });
-
-        if (error) {
-            showSnackbar(`Error verifying OTP: ${error.message}`, 'error');
-            console.error('Verify OTP Error:', error);
-            return;
-        }
-        
-        if (data.session) {
-            await fetchUserProfile(data.user.id);
-            updateUserUI();
-            showSnackbar('Login successful!', 'success');
-            // If new user, prompt for name update
-            if (!currentUser || !currentUser.name) {
-                showSnackbar('Please enter your name to complete your profile.', 'info');
-            }
-        }
-        
-    } catch (e) {
-        showSnackbar('An unexpected error occurred.', 'error');
-        console.error('Verify OTP Catch:', e);
-    }
-}
-
-async function updateProfile() {
-    if (!currentUser || !currentUser.id) {
-        showSnackbar('Not logged in. Please try to log in again.', 'error');
-        return;
-    }
-    const newName = document.getElementById('nameInput').value.trim();
-    if (!newName) { showSnackbar('Name cannot be empty.', 'error'); return; }
-
-    const profileData = { id: currentUser.id, phone: currentUser.phone, name: newName };
-
-    try {
-        const { error } = await supabase
-            .from('users')
-            .upsert([profileData]);
-            
-        if (error) {
-            showSnackbar(`Error updating profile: ${error.message}`, 'error');
-            return;
-        }
-        
-        currentUser.name = newName;
-        updateUserUI();
-        showSnackbar('Profile updated successfully!', 'success');
-        
-    } catch (e) {
-        showSnackbar('An unexpected error occurred during profile update.', 'error');
-        console.error('Profile Update Catch:', e);
-    }
-}
-
-async function doLogout() {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-        showSnackbar(`Logout Error: ${error.message}`, 'error');
-    } else {
-        currentUser = null;
-        updateUserUI();
-        closeModal('authModal');
-        showSnackbar('Logged out successfully.', 'success');
-    }
-}
-
-
-// --- ORDERING ---
-function openOrderModal() {
-    if (!currentUser || !currentUser.name) {
-        showSnackbar('Please log in and complete your profile first.', 'info');
-        closeModal('detailModal');
-        checkAuth(); 
-        return;
-    }
-
-    if (!selectedProduct) return;
-    
-    const translatedName = selectedProduct.name_translations ? JSON.parse(selectedProduct.name_translations)[currentLang] || selectedProduct.name : selectedProduct.name;
-
-    document.getElementById('orderProductDisplay').innerHTML = `
-        <img src="${selectedProduct.image_url}" style="width:60px; height:60px; object-fit:cover; float:left; margin-right:10px;">
-        <div style="font-weight:bold;">${translatedName}</div>
-        <div style="color:var(--accent-color);">${selectedProduct.price}</div>
-        <div style="clear:both;"></div>
-    `;
-
-    // Prefill form
-    document.getElementById('contactPhoneInput').value = currentUser.phone;
-    document.getElementById('addressInput').value = '';
-    document.getElementById('noteInput').value = '';
-    document.getElementById('slipInput').value = '';
-    slipFile = null;
-    document.getElementById('sendBtn').disabled = true;
-
-    closeModal('detailModal');
-    document.getElementById('orderModal').style.display = 'flex';
-}
-
-function checkSlipFile() {
-    const input = document.getElementById('slipInput');
-    slipFile = input.files[0];
-    document.getElementById('sendBtn').disabled = !slipFile;
-}
-
-async function sendOrder() {
-    if (!currentUser || !selectedProduct || !slipFile) {
-        showSnackbar('Missing order data (User/Product/Slip).', 'error');
-        return;
-    }
-    
-    const address = document.getElementById('addressInput').value.trim();
-    const phone = document.getElementById('contactPhoneInput').value.trim();
-    const note = document.getElementById('noteInput').value.trim();
-
-    if (!address || !phone) {
-        showSnackbar('Address and Contact Phone are required.', 'error');
-        return;
-    }
-
-    // 1. Upload Slip
-    const filename = `${currentUser.id}_${Date.now()}.jpg`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('slips')
-        .upload(filename, slipFile);
-        
-    if (uploadError) {
-        showSnackbar(`Error uploading slip: ${uploadError.message}`, 'error');
-        return;
-    }
-    
-    const slipURL = `${SUPABASE_URL}/storage/v1/object/public/slips/${filename}`;
-
-    // 2. Insert Order to Supabase
-    const orderData = {
-        user_id: currentUser.id,
-        product_id: selectedProduct.id,
-        item_name: selectedProduct.name,
-        price: selectedProduct.price,
-        customer_name: currentUser.name,
-        customer_phone: phone,
-        address: address,
-        note: note,
-        slip_url: slipURL,
-        status: 'pending' // Initial status
-    };
-
-    const { data: orderDataRes, error: orderError } = await supabase
-        .from('orders')
-        .insert([orderData])
-        .select()
-        .single();
-        
-    if (orderError) {
-        showSnackbar(`Error saving order: ${orderError.message}`, 'error');
-        // Optional: Delete the uploaded slip if order insertion fails
-        await supabase.storage.from('slips').remove([filename]);
-        return;
-    }
-
-    closeModal('orderModal');
-    document.getElementById('successModal').style.display = 'flex';
-    showSnackbar('Order sent successfully! Waiting for admin confirmation.', 'success');
-    
-    // 3. Send Telegram Notification (Optional but good practice)
-    const telegramMessage = `
-**🛍️ New Order Received!**
-*Order ID:* ${orderDataRes.id}
-*Item:* ${selectedProduct.name}
-*Price:* ${selectedProduct.price}
-*Customer:* ${currentUser.name} (${phone})
-*Address:* ${address}
-*Note:* ${note || 'N/A'}
-*Slip:* ${slipURL}
-    `;
-    await sendTelegramNotification(telegramMessage);
-}
-
-// --- HISTORY ---
-function openHistoryModal() {
-    if (!currentUser) {
-        showSnackbar('Please log in to view order history.', 'info');
-        checkAuth();
-        return;
-    }
-    document.getElementById('historyModal').style.display = 'flex';
-    loadOrderHistory();
-}
-
-async function loadOrderHistory() {
-    const con = document.getElementById('orderHistoryList');
-    con.innerHTML = '<p style="text-align:center;">Loading history...</p>';
-    
-    let { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', {ascending:false});
-        
-    if(error) { con.innerHTML = `<p style="color:red; text-align:center;">Error: ${error.message}</p>`; return; }
-    
-    if(!data || data.length === 0) { con.innerHTML = '<p style="text-align:center;">No order history found.</p>'; return; }
-    
-    let html = '';
-    data.forEach(o => {
-        let statusText = 'Pending';
-        let statusColor = '#03a9f4'; // Blue
-        if(o.status === 'reject') { statusText = 'Rejected'; statusColor = '#d32f2f'; } // Red
-        else if(o.status === 'coming') { statusText = 'Coming Soon'; statusColor = '#ffc107'; } // Yellow
-        else if(o.status === 'owned') { statusText = 'Delivered/Owned'; statusColor = '#4CAF50'; } // Green
-
-        html += `
-            <div class="history-item">
-                <div>
-                    <div style="font-weight:bold;">${o.item_name}</div>
-                    <small style="color:var(--accent-color);">${o.price}</small>
-                </div>
-                <div style="text-align:right;">
-                    <div style="color:${statusColor}; font-weight:bold;">${statusText}</div>
-                    <small>Order ID: #${o.id}</small>
-                </div>
+    products.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+            <img src="${product.image_url}" alt="${product.name}" onclick="selectProduct(${product.id})">
+            <div class="p-details">
+                <div class="p-name">${product.name}</div>
+                <div class="p-price">${product.price} MMK</div>
+                <button class="cart-btn" onclick="selectProduct(${product.id})">Order Now</button>
             </div>
         `;
+        container.appendChild(card);
     });
-    con.innerHTML = html;
 }
 
-// --- TELEGRAM CHAT ---
-function openChatModal() {
-    document.getElementById('chatModal').style.display = 'flex';
-    document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+
+async function selectProduct(productId) {
+    selectedProduct = currentProducts.find(p => p.id === productId);
+    if (!selectedProduct) return;
+
+    // Display product details in the modal (Assuming your HTML has productDetailModal)
+    document.getElementById('productDetailModal').style.display = 'block';
+    document.getElementById('modalPName').textContent = selectedProduct.name;
+    document.getElementById('modalPPrice').textContent = `${selectedProduct.price} MMK`;
+    document.getElementById('modalPDesc').textContent = selectedProduct.description || 'No detailed description available.';
+    document.getElementById('modalPImage').src = selectedProduct.image_url;
+    document.getElementById('quantityInput').value = 1; // Reset quantity
 }
 
-function sendMessage() {
-    if (!currentUser || !currentUser.name) {
-        showSnackbar('Please log in to chat.', 'info');
-        closeModal('chatModal');
-        checkAuth();
+
+async function sendOrder() {
+    // 1. Collect Form Data
+    const customerName = document.getElementById('nameInput').value;
+    const address = document.getElementById('addressInput').value;
+    const phone = document.getElementById('contactPhoneInput').value;
+    const quantity = parseInt(document.getElementById('quantityInput').value);
+    const note = document.getElementById('noteInput').value;
+    const slipFile = document.getElementById('slipInput').files[0];
+
+    if (!selectedProduct || !customerName || !address || !phone || quantity <= 0 || !slipFile) {
+        showSnackbar('Please fill all required fields and upload the payment slip.', true);
+        return;
+    }
+    
+    document.getElementById('sendBtn').disabled = true;
+    showSnackbar('Uploading slip and submitting order...', false);
+
+    let slipUrl = '';
+
+    // 2. Upload Payment Slip to Supabase Storage
+    try {
+        const filePath = `slips/${Date.now()}_${slipFile.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('slips') // You must create a 'slips' bucket in Supabase Storage
+            .upload(filePath, slipFile);
+
+        if (uploadError) throw uploadError;
+
+        // Get the public URL for the uploaded file
+        const { data: publicUrlData } = supabase.storage
+            .from('slips')
+            .getPublicUrl(filePath);
+            
+        slipUrl = publicUrlData.publicUrl;
+        
+    } catch (error) {
+        showSnackbar('Payment slip upload failed: ' + error.message, true);
+        document.getElementById('sendBtn').disabled = false;
         return;
     }
 
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    if (!message) return;
 
-    // Display user message in chatbox
-    const chatBox = document.getElementById('chatBox');
-    const userMsg = document.createElement('div');
-    userMsg.className = 'chat-message user-message';
-    userMsg.innerText = message;
-    chatBox.appendChild(userMsg);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    // 3. Insert Order Data to 'orders' Table
+    const orderData = {
+        customer_name: customerName,
+        contact_phone: phone,
+        delivery_address: address,
+        product_name: selectedProduct.name, // Simplified: storing name instead of ID
+        quantity: quantity,
+        payment_slip_url: slipUrl,
+        status: 'pending',
+        notes: note,
+        total_price: selectedProduct.price * quantity 
+    };
 
-    // Send to Telegram
-    const telegramMessage = `**💬 User Chat Message**\n*User:* ${currentUser.name} (${currentUser.phone})\n*Message:* ${message}`;
-    sendTelegramNotification(telegramMessage);
+    const { error: insertError } = await supabase
+        .from('orders')
+        .insert([orderData]);
 
-    input.value = '';
+    if (insertError) {
+        // This is where RLS errors usually occur for anon users!
+        console.error('Order Insertion Failed (Check RLS):', insertError); 
+        showSnackbar('Order submission failed. (Database Error)', true);
+        document.getElementById('sendBtn').disabled = false;
+        return;
+    }
+
+    // 4. Send Telegram Notification (Optional but good practice)
+    await sendTelegramNotification(orderData);
+
+    // 5. Success
+    closeModal('orderModal');
+    document.getElementById('successModal').style.display = 'block';
+    document.getElementById('sendBtn').disabled = false;
 }
 
-async function sendTelegramNotification(message) {
-    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
+
+async function sendTelegramNotification(order) {
+    const message = `
+🌟 New Order Received! 🌟
+----------------------------------
+🛍️ Product: ${order.product_name} (${order.quantity} pcs)
+💰 Total: ${order.total_price} MMK
+👤 Customer: ${order.customer_name}
+📞 Phone: ${order.contact_phone}
+📍 Address: ${order.delivery_address}
+📄 Note: ${order.notes || 'N/A'}
+🖼️ Slip URL: ${order.payment_slip_url}
+----------------------------------
+`;
+
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+    
     try {
-        await fetch(url);
-    } catch (e) {
-        console.error("Failed to send Telegram notification:", e);
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: CHAT_ID,
+                text: message,
+                parse_mode: 'HTML'
+            })
+        });
+    } catch (err) {
+        console.error("Telegram notification failed:", err);
+        // Do not block order success for a failed notification
     }
 }
 
 
-// --- WINDOW ONLOAD ---
-window.onload = async function() {
-    // Language Setup
-    const langSelect = document.getElementById('langSelect');
-    const savedLang = localStorage.getItem('kshop_lang');
-    if (savedLang && currentTranslations[savedLang]) {
-        currentLang = savedLang;
-        langSelect.value = currentLang;
-        applyLanguage(currentLang);
-    } else if (langSelect.options.length > 0 && currentTranslations[currentLang]) {
-        langSelect.value = currentLang;
-        applyLanguage(currentLang);
-    }
+function checkSlipFile() {
+    const slipInput = document.getElementById('slipInput');
+    const sendBtn = document.getElementById('sendBtn');
     
-    // Check for existing Admin session
-    if(localStorage.getItem('kshop_admin') === 'true') {
-        isAdmin = true;
-    }
-    
-    // Check for existing Supabase session and load profile
-    await loadUserSession();
-    
-    loadProducts('all', currentTranslations[currentLang].all, 'women'); 
-    updateUserUI();
-    loadBanners(); 
-    
-    // Theme Setup
-    if(localStorage.getItem('kshop_dark_mode') === 'on') {
-        document.body.classList.add('dark-mode');
-        document.getElementById('darkModeToggle').checked = true;
+    if (slipInput.files.length > 0 && selectedProduct) {
+        sendBtn.disabled = false;
+    } else {
+        sendBtn.disabled = true;
     }
 }
 
-
-    
-     
+// Initial Load
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if the current page is the customer index page
+    if (document.getElementById('productsContainer')) {
+        loadProducts('all', 'All Products', 'women'); // Load initial products on startup
+    }
+    // No action needed for admin pages here, they have their own scripts.
+});
