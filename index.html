@@ -6,7 +6,7 @@
     <title>Fashion Lab</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="styleOOO.css"> 
+    <link rel="stylesheet" href="style.css"> 
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
 </head>
@@ -14,89 +14,109 @@
 
     <div class="overlay" onclick="toggleMenu()"></div>
     
+    <header>
+        <div class="nav-icons">
+            <i class="fas fa-bars menu-btn" onclick="toggleMenu()"></i>
+        </div>
+        <div class="logo">
+            <h1>Fashion-Lab</h1>
+        </div>
+        <div class="nav-icons">
+            <i class="fas fa-search" onclick="toggleSearch()"></i>
+            <i class="fas fa-user" onclick="checkAuth()"></i>
+            <span id="userDot" class="user-dot" style="display:none;"></span>
+        </div>
+    </header>
+
+    <div class="search-box" id="searchBox" style="display:none;">
+        <input type="text" id="searchInput" placeholder="Search..." oninput="searchProducts()">
+        <i class="fas fa-times" onclick="toggleSearch()"></i>
+    </div>
+
     <div class="side-menu" id="sideMenu">
         <div class="menu-tabs">
-            <div class="tab active" onclick="switchTab('women')">WOMEN</div>
-            <div class="tab" onclick="switchTab('men')">MEN</div>
+            <div class="tab active" id="women-menu-tab" onclick="switchTab('women')">WOMEN</div>
+            <div class="tab" id="men-menu-tab" onclick="switchTab('men')">MEN</div>
         </div>
         <div class="menu-content">
             <div id="women-menu" class="menu-section active">
-                <div style="padding:15px; background:var(--bg-color); font-weight:bold;" data-t="shop_cat">WOMEN'S FASHION</div>
-                <div class="menu-item" onclick="loadProducts('all', 'All Products', 'women')"><span data-t="all">All Products</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('clothing', 'Clothing', 'women')"><span data-t="clothing">Clothing</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('shoes', 'Shoes', 'women')"><span data-t="shoes">Shoes</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('accessories', 'Accessories', 'women')"><span data-t="accessories">Accessories</span> <i class="fas fa-chevron-right"></i></div>
+                <div style="padding:15px; background:var(--header-bg); color:var(--header-text); font-weight:bold;" data-t="shop_cat">WOMEN'S FASHION</div>
+                <div class="menu-item" onclick="loadProducts('all', currentTranslations[currentLang].all, 'women')"><span data-t="all">All Products</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('clothing', currentTranslations[currentLang].clothing, 'women')"><span data-t="clothing">Clothing</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('shoes', currentTranslations[currentLang].shoes, 'women')"><span data-t="shoes">Shoes</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('accessories', currentTranslations[currentLang].accessories, 'women')"><span data-t="accessories">Accessories</span> <i class="fas fa-chevron-right"></i></div>
             </div>
             <div id="men-menu" class="menu-section">
-                <div style="padding:15px; background:var(--bg-color); font-weight:bold;" data-t="shop_cat">MEN'S FASHION</div>
-                <div class="menu-item" onclick="loadProducts('all', 'All Products', 'men')"><span data-t="all">All Products</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('clothing', 'Clothing', 'men')"><span data-t="clothing">Clothing</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('shoes', 'Shoes', 'men')"><span data-t="shoes">Shoes</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('accessories', 'Accessories', 'men')"><span data-t="accessories">Accessories</span> <i class="fas fa-chevron-right"></i></div>
+                <div style="padding:15px; background:var(--header-bg); color:var(--header-text); font-weight:bold;" data-t="shop_cat">MEN'S FASHION</div>
+                <div class="menu-item" onclick="loadProducts('all', currentTranslations[currentLang].all, 'men')"><span data-t="all">All Products</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('clothing', currentTranslations[currentLang].clothing, 'men')"><span data-t="clothing">Clothing</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('shoes', currentTranslations[currentLang].shoes, 'men')"><span data-t="shoes">Shoes</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('accessories', currentTranslations[currentLang].accessories, 'men')"><span data-t="accessories">Accessories</span> <i class="fas fa-chevron-right"></i></div>
             </div>
+            <hr>
+            <div class="menu-item" onclick="loadProducts('all', currentTranslations[currentLang].all, document.getElementById('women-menu').classList.contains('active') ? 'women' : 'men'); toggleMenu();"><span data-t="home">Home</span> <i class="fas fa-home"></i></div>
+            <div class="menu-item" onclick="openHistoryModal()"><span data-t="history">History</span> <i class="fas fa-history"></i></div>
+            <div class="menu-item" onclick="openChatModal()"><span data-t="chat">Chat</span> <i class="fas fa-comment"></i></div>
+            <div class="menu-item" onclick="openSettings()"><span data-t="settings">Settings</span> <i class="fas fa-cog"></i></div>
+            <div class="menu-item" onclick="checkAdmin()"><span data-t="admin_title">Admin</span> <i class="fas fa-user-shield"></i></div>
         </div>
     </div>
 
-    <header>
-        <div onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-        <div style="font-weight:bold; font-size: 20px; color: var(--accent-color); text-shadow: 0 1px 1px rgba(0,0,0,0.1);">Fashion Lab</div>
-        <div class="nav-icons">
-            <i class="fas fa-search" onclick="toggleSearch()"></i>
-            <i class="fas fa-user" onclick="checkAuth()"><span class="user-dot" id="userDot"></span></i>
-            <i class="fas fa-chart-line" onclick="checkAdmin()"></i>
-        </div>
-    </header>
-    <div id="searchBox"><input type="text" id="searchInput" placeholder="Search..." onkeyup="searchProducts()"></div>
-
     <main>
-        <div id="bannerContainer"></div>
-        <h2 id="currentCategoryTitle" style="padding: 10px 20px; font-size: 18px; margin-top: 10px;">All Products</h2>
+        <div class="banner-container" id="bannerContainer">
+            </div>
+
+        <div class="category-header">
+            <h2 id="currentCategoryTitle" data-t="all">All Products</h2>
+        </div>
         <div class="products-container" id="productsContainer">
             </div>
     </main>
-    
+
     <footer>
-        <div class="footer-item" onclick="loadProducts('all', 'All Products', 'women')"><i class="fas fa-home"></i><span data-t="home">Home</span></div>
-        <div class="footer-item" onclick="openHistoryModal()"><i class="fas fa-history"></i><span data-t="history">History</span></div>
-        <div class="footer-item" onclick="openSettings()"><i class="fas fa-cog"></i><span data-t="settings">Settings</span></div>
-        <div class="footer-item" onclick="openChatModal()"><i class="fas fa-comment-dots"></i><span data-t="chat">Chat</span></div>
+        <p>&copy; 2025 Fashion Lab. All rights reserved.</p>
     </footer>
+
+    <div id="snackbar">Some message..</div>
 
     <div class="modal" id="authModal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('authModal')">&times;</span>
+            <span class="close-btn" onclick="closeModal('authModal')">&times;</span>
             <h3 data-t="login_title">Login / Register</h3>
             
-            <div id="authContent">
+            <div id="authContent" style="display:none;">
                 <div class="input-group">
-                    <label data-t="phone_label">Phone Number (ဖုန်းနံပါတ်)</label>
+                    <label data-t="phone_label">Phone Number</label>
                     <input type="tel" id="phoneInput" placeholder="09xxxxxxxxx">
                 </div>
-                <button class="order-btn" onclick="sendOTP()" id="sendOTPBtn" data-t="send_otp">Send OTP</button>
-            </div>
-
-            <div id="otpContent" style="display:none;">
-                <p data-t="otp_sent">OTP sent to your phone. Check your messages.</p>
-                <div class="input-group">
-                    <label data-t="otp_label">OTP Code</label>
-                    <input type="number" id="otpInput" placeholder="Enter 6-digit code">
-                </div>
-                <button class="order-btn" onclick="verifyOTP()" id="verifyOTPBtn" data-t="verify_otp">Verify OTP</button>
+                <button class="order-btn" onclick="sendOTP()" data-t="send_otp">Send OTP</button>
             </div>
             
-            <div id="profileContent" style="display:none; text-align:center;">
-                <h4 data-t="welcome">Welcome!</h4>
-                <p id="profileDisplay"></p>
-                <div class="input-group"><label data-t="name_label">Name</label><input type="text" id="nameInput" placeholder="Your Name"></div>
+            <div id="otpContent" style="display:none;">
+                <p data-t="otp_sent" style="color:var(--accent-color); font-weight:bold;">OTP sent to your phone. Check your messages.</p>
+                <div class="input-group">
+                    <label data-t="otp_label">OTP Code</label>
+                    <input type="text" id="otpInput" placeholder="Enter 6-digit code">
+                </div>
+                <button class="order-btn" onclick="verifyOTP()" data-t="verify_otp">Verify OTP</button>
+            </div>
+
+            <div id="profileContent" style="display:none;">
+                <h3 data-t="welcome">Welcome!</h3>
+                <p id="profileDisplay" style="font-weight:bold; margin-bottom:10px;"></p>
+                <div class="input-group">
+                    <label data-t="name_label">Name</label>
+                    <input type="text" id="nameInput" placeholder="Your Name">
+                </div>
                 <button class="order-btn" onclick="updateProfile()" data-t="update_profile">Update Profile</button>
-                <button class="order-btn" onclick="doLogout()" style="background:#d32f2f; margin-top:20px;" data-t="logout_btn">Logout</button>
+                <button class="order-btn" onclick="doLogout()" style="background:#f44336; margin-top:10px;" data-t="logout_btn">Logout</button>
             </div>
         </div>
     </div>
 
     <div class="modal" id="detailModal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('detailModal')">&times;</span>
+            <span class="close-btn" onclick="closeModal('detailModal')">&times;</span>
             <div id="productDetail">
                 </div>
         </div>
@@ -104,12 +124,11 @@
 
     <div class="modal" id="orderModal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('orderModal')">&times;</span>
+            <span class="close-btn" onclick="closeModal('orderModal')">&times;</span>
             <h3 data-t="order_title">Order Details</h3>
-            
-            <div id="orderProductDisplay" style="margin-bottom:15px; border-bottom:1px solid #eee;"></div>
+            <div id="orderProductDisplay" style="margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid #ddd;"></div>
 
-            <div id="orderForm">
+            <div class="address-inputs">
                 <div class="input-group">
                     <label data-t="address_label">Delivery Address (ပို့ဆောင်ရန်လိပ်စာ)</label>
                     <textarea id="addressInput" rows="3"></textarea>
@@ -125,7 +144,7 @@
             </div>
 
             <div class="input-group"><label data-t="slip_label">Payment Slip (ပြေစာ)</label><input type="file" id="slipInput" onchange="checkSlipFile()"></div>
-            <button class="order-btn" id="sendBtn" onclick="sendOrder()" disabled data-t="send_btn">Admin ထံသို့ ပို့မည်</button>
+            <button class="order-btn" id="sendBtn" onclick="sendOrder()" disabled data-t="send_btn">Send Order to Admin</button>
         </div>
     </div>
 
@@ -140,71 +159,77 @@
 
     <div class="modal" id="historyModal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('historyModal')">&times;</span>
+            <span class="close-btn" onclick="closeModal('historyModal')">&times;</span>
             <h3 data-t="history_title">Order History</h3>
             <div id="orderHistoryList">
-                <p style="text-align:center;">Loading history...</p>
-            </div>
+                </div>
         </div>
     </div>
 
     <div class="modal" id="chatModal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('chatModal')">&times;</span>
+            <span class="close-btn" onclick="closeModal('chatModal')">&times;</span>
             <h3 data-t="chat_title">Chat with Admin</h3>
-            <div id="chatBox">
-                <div class="chat-message bot-message" data-t="chat_reply">
-                    Hello! How can I help you today?
-                </div>
-                </div>
-            <div class="chat-input">
-                <input type="text" id="chatInput" placeholder="Type your message..." onkeypress="if(event.keyCode == 13) sendMessage()">
+            <div class="chat-box" id="chatBox">
+                <div class="chat-message bot-message" data-t="chat_reply">Hello! How can I help you today?</div>
+            </div>
+            <div class="chat-input-group">
+                <input type="text" id="chatInput" placeholder="Type your message..." onkeydown="if(event.keyCode===13) sendMessage()">
                 <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
-    
-    <div class="modal" id="adminModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('adminModal')">&times;</span>
-            <h3 data-t="admin_title">Admin Dashboard</h3>
-            
-            <div id="adminAuth" style="display:none; margin-top: 10px;">
-                <div class="input-group"><label>Admin User ID</label><input type="text" id="adminIdInput"></div>
-                <div class="input-group"><label>Admin Password</label><input type="password" id="adminPasswordInput"></div>
-                <button class="order-btn" onclick="adminLogin()">Login as Admin</button>
-            </div>
-            
-            <div id="adminContent" style="display:none;">
-                <h4 data-t="pending_orders">Pending Orders</h4>
-                <div id="pendingOrdersList"><p style="text-align:center;">Loading orders...</p></div>
-                
-                <button class="order-btn" onclick="doAdminLogout()" style="background:#d32f2f; margin-top:20px;">Admin Logout</button>
-            </div>
-        </div>
-    </div>
-    
+
     <div class="modal" id="settingsModal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('settingsModal')">&times;</span>
+            <span class="close-btn" onclick="closeModal('settingsModal')">&times;</span>
             <h3 data-t="settings_title">Settings</h3>
-            <div class="setting-row">
+            <div class="setting-item">
                 <span data-t="dark_mode">Dark Mode</span>
-                <label class="switch"><input type="checkbox" onchange="toggleTheme(this)" id="darkModeToggle"><span class="slider"></span></label>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle" onchange="toggleTheme(this)">
+                    <span class="slider"></span>
+                </label>
             </div>
-            <div class="setting-row">
+            <hr>
+            <div class="setting-item">
                 <span data-t="language_title">Language</span>
                 <select id="langSelect" onchange="toggleLanguage(this.value)">
-                    <option value="en">English (EN)</option>
-                    <option value="my">မြန်မာ (MY)</option>
-                    <option value="th">ไทย (TH)</option>
+                    <option value="en">English</option>
+                    <option value="my">မြန်မာ</option>
+                    <option value="th">ไทย</option>
                 </select>
             </div>
         </div>
     </div>
 
-    <div id="snackbar"></div>
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('adminModal')">&times;</span>
+            <h3 data-t="admin_title">Admin Dashboard</h3>
+            
+            <div id="adminAuth" style="padding-top:10px;">
+                <div class="input-group">
+                    <label>Admin ID</label>
+                    <input type="text" id="adminIdInput" placeholder="Enter Admin Username">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="adminPasswordInput" placeholder="Enter Admin Password">
+                </div>
+                <button class="order-btn" onclick="adminLogin()">Login</button>
+            </div>
 
-    <script src="scriptOOO.js"></script>
+            <div id="adminContent" style="display:none;">
+                <h4 style="margin-top:0;" data-t="pending_orders">Pending Orders</h4>
+                <div id="pendingOrdersList" style="max-height: 400px; overflow-y: auto;">
+                    </div>
+                <button class="order-btn" onclick="doAdminLogout()" style="background:#f44336; margin-top:10px;">Admin Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script> 
 </body>
 </html>
