@@ -1,4 +1,5 @@
 // CONFIG (UPDATED with New Supabase Credentials)
+// **သင်ပေးပို့ခဲ့သော API Key အသစ်များအား ထည့်သွင်းထားသည်**
 const SUPABASE_URL = 'https://kfculpfelkfzigrptuae.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmY3VscGZlbGtmemlncnB0dWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MzMwMjEsImV4cCI6MjA4MDIwOTAyMX0.HwFdPcWYRAwcAvAxTHceEFNQtmxpq6h01gDgfoht4es'; 
 
@@ -6,18 +7,18 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const BOT_TOKEN = '8180483853:AAGU6BHy2Ws-PboyopehdBFkWY5kpedJn6Y'; 
 const CHAT_ID = '-5098597126'; 
 
-// Custom domain used for Supabase Auth (for phone number formatting in admin-login.js)
-const AUTH_DOMAIN = '@kshop.com'; 
+// NOTE: AUTH_DOMAIN is no longer needed for Magic Link/Email Login
+// const AUTH_DOMAIN = '@kshop.com'; 
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Global State Variables
 let currentProducts = [];
-let currentUser = null; 
+let currentUser = null; // Stores the user's profile data (id, email, role)
 let selectedProduct = null; 
 
 
-// === UI/HELPER FUNCTIONS (Your existing functions) ===
+// === UI/HELPER FUNCTIONS (Shared by index & admin pages) ===
 
 function showSnackbar(msg, isError = false) { 
     const x = document.getElementById("snackbar"); 
@@ -46,7 +47,6 @@ function closeModal(id) { document.getElementById(id).style.display='none'; }
 function searchProducts() { 
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const con = document.getElementById('productsContainer');
-    // Check if container exists (only on indexOOO.html)
     if (!con) return; 
 
     const productCards = con.querySelectorAll('.product-card');
@@ -76,14 +76,50 @@ function switchTab(t) {
     loadProducts('all', 'All Products', t);
 }
 
-// ----------------------------------------------------
+
+// === AUTHENTICATION LOGIC (Magic Link) ===
+
+/**
+ * Sends a Magic Link to the user's email address.
+ * @param {string} email - The email of the user trying to log in/register.
+ * @param {string} redirectToUrl - The URL to redirect to after successful login.
+ */
+async function sendMagicLink(email, redirectToUrl) {
+    const { error } = await supabase.auth.signInWithOtp({ 
+        email: email,
+        options: { 
+            emailRedirectTo: redirectToUrl 
+        }
+    });
+
+    if (error) {
+        console.error('Magic Link Error:', error);
+        showSnackbar(`Login failed: ${error.message}`, true);
+        return false;
+    } else {
+        showSnackbar(`Magic Link has been sent to ${email}. Check your inbox!`, false);
+        return true;
+    }
+}
+
+/**
+ * Signs out the current user and redirects to the appropriate page.
+ * @param {string} redirectPath - Path to redirect to ('/admin-login.html' or '/indexOOO.html').
+ */
+async function signOutAndRedirect(redirectPath) {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        console.error('Sign Out Error:', error);
+        showSnackbar('Sign out failed.', true);
+    } else {
+        localStorage.removeItem('userRole'); // Clear local role storage
+        window.location.href = redirectPath;
+    }
+}
+
 // === CORE FUNCTIONS (Customer Website Logic) ===
-// NOTE: These are placeholder functions. The actual logic needs to be fully implemented 
-// in your original scriptOOO.js, especially for product loading and ordering.
-// ----------------------------------------------------
 
 async function loadProducts(category, title, gender) {
-    // This is the core function to fetch products for the main page
     const productsContainer = document.getElementById('productsContainer');
     if (!productsContainer) return;
 
@@ -91,14 +127,10 @@ async function loadProducts(category, title, gender) {
     
     let query = supabase.from('products').select('*').eq('is_active', true);
     
-    // Filtering logic (needs refinement based on your categories)
     if (category !== 'all') {
         query = query.eq('category', category);
     }
-    if (gender) {
-        // Example: Only show categories that match the gender tab
-        // Note: You must ensure your 'category' column contains gender info (e.g., 'women_clothing')
-    }
+    // Implement gender filtering if necessary based on your category naming scheme
     
     const { data: products, error } = await query.order('created_at', { ascending: false });
 
@@ -109,7 +141,6 @@ async function loadProducts(category, title, gender) {
 
     currentProducts = products;
     renderProducts(products);
-    // document.getElementById('sectionTitle').textContent = title; // Assuming you have a title element
 }
 
 function renderProducts(products) {
@@ -120,11 +151,11 @@ function renderProducts(products) {
         const card = document.createElement('div');
         card.className = 'product-card';
         card.innerHTML = `
-            <img src="${product.image_url}" alt="${product.name}" onclick="selectProduct(${product.id})">
+            <img src="${product.image_url}" alt="${product.name}" onclick="selectProduct('${product.id}')">
             <div class="p-details">
                 <div class="p-name">${product.name}</div>
                 <div class="p-price">${product.price} MMK</div>
-                <button class="cart-btn" onclick="selectProduct(${product.id})">Order Now</button>
+                <button class="cart-btn" onclick="selectProduct('${product.id}')">Order Now</button>
             </div>
         `;
         container.appendChild(card);
@@ -169,12 +200,11 @@ async function sendOrder() {
     try {
         const filePath = `slips/${Date.now()}_${slipFile.name}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('slips') // You must create a 'slips' bucket in Supabase Storage
+            .from('slips') 
             .upload(filePath, slipFile);
 
         if (uploadError) throw uploadError;
 
-        // Get the public URL for the uploaded file
         const { data: publicUrlData } = supabase.storage
             .from('slips')
             .getPublicUrl(filePath);
@@ -193,7 +223,7 @@ async function sendOrder() {
         customer_name: customerName,
         contact_phone: phone,
         delivery_address: address,
-        product_name: selectedProduct.name, // Simplified: storing name instead of ID
+        product_name: selectedProduct.name,
         quantity: quantity,
         payment_slip_url: slipUrl,
         status: 'pending',
@@ -206,14 +236,13 @@ async function sendOrder() {
         .insert([orderData]);
 
     if (insertError) {
-        // This is where RLS errors usually occur for anon users!
         console.error('Order Insertion Failed (Check RLS):', insertError); 
-        showSnackbar('Order submission failed. (Database Error)', true);
+        showSnackbar('Order submission failed. (Database Error: Check RLS Policies)', true);
         document.getElementById('sendBtn').disabled = false;
         return;
     }
 
-    // 4. Send Telegram Notification (Optional but good practice)
+    // 4. Send Telegram Notification
     await sendTelegramNotification(orderData);
 
     // 5. Success
@@ -251,7 +280,6 @@ async function sendTelegramNotification(order) {
         });
     } catch (err) {
         console.error("Telegram notification failed:", err);
-        // Do not block order success for a failed notification
     }
 }
 
@@ -269,9 +297,8 @@ function checkSlipFile() {
 
 // Initial Load
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if the current page is the customer index page
     if (document.getElementById('productsContainer')) {
-        loadProducts('all', 'All Products', 'women'); // Load initial products on startup
+        loadProducts('all', 'All Products', 'women'); // Load initial products on customer page
     }
-    // No action needed for admin pages here, they have their own scripts.
 });
+    
