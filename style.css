@@ -1,61 +1,34 @@
-/* ... (Your existing styles) ... */
+/* Add to the end of styleOOO.css */
 
-/* ADMIN PANEL STYLES */
-/* ... (Your existing admin styles) ... */
-
-/* Data Table Styles (for Admin) */
-.data-table {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 20px;
-}
-.data-row {
-    display: flex;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    align-items: center;
+.order-item {
     background: var(--card-bg);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 5px solid var(--accent-color);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-.data-row.header-row {
-    font-weight: bold;
-    background: var(--header-bg);
-    color: var(--header-text);
-    border-bottom: 1px solid var(--text-color);
+.order-item h4 {
+    margin-top: 0;
+    color: var(--accent-color);
 }
-.data-cell {
-    padding: 5px;
-    flex: 1; /* Default equal flex for cells */
-    min-width: 50px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Specific column widths for better layout */
-.data-row .data-cell:nth-child(1) { flex: 0.8; } /* Image/Date */
-.data-row .data-cell:nth-child(2) { flex: 1.5; } /* Name/Product */
-.data-row .data-cell:nth-child(3) { flex: 1.2; } /* Price/Customer */
-.data-row .data-cell:nth-child(4) { flex: 1; } /* Category/Phone */
-.data-row .data-cell:nth-child(5) { flex: 2; } /* Active/Address */
-.data-row .data-cell:nth-child(6) { flex: 0.8; } /* Actions/Slip */
-.data-row .data-cell:nth-child(7) { flex: 1.2; } /* Status */
-
-
-/* Order Status Colors (Important for Admin View) */
-.data-row.status-pending { background-color: #fef7e9; border-left: 5px solid #f39c12; } /* Light Yellow/Orange */
-.data-row.status-coming { background-color: #e6f7ff; border-left: 5px solid #3498db; } /* Light Blue */
-.data-row.status-owned { background-color: #e9f8e9; border-left: 5px solid #2ecc71; } /* Light Green */
-.data-row.status-reject { background-color: #fee9e9; border-left: 5px solid #e74c3c; } /* Light Red */
-
-/* Select box for status */
-.order-row select {
-    padding: 5px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    background: #fff;
+.order-item p {
+    margin: 5px 0;
     font-size: 14px;
-    cursor: pointer;
 }
-
-/* ... (Your other styles like modal, input-group, button, etc.) ... */
+.order-status-btn {
+    padding: 8px 15px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #f44336; /* Red for new */
+    color: white;
+}
+.order-status-btn.processed {
+    background-color: #2196f3; /* Blue for processed */
+}
+.order-status-btn.shipped {
+    background-color: #4CAF50; /* Green for shipped */
+}
+/* Re-use .input-group and .order-btn from existing CSS */
