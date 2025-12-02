@@ -1,5 +1,4 @@
 // CONFIG
-// (Supabase URL/Key, BOT_TOKEN, CHAT_ID တို့ကို မပြောင်းလဲပါ)
 const SUPABASE_URL = 'https://kfculpfelkfzigrptuae.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmY3VscGZlbGtmemlncnB0dWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MzMwMjEsImV4cCI6MjA4MDIwOTAyMX0.HwFdPcWYRAwcAvAxTHceEFNQtmxpq6h01gDgfoht4es'; 
 const BOT_TOKEN = '8180483853:AAGU6BHy2Ws-PboyopehdBFkWY5kpedJn6Y'; 
@@ -10,120 +9,31 @@ const CHAT_ID = '-5098597126';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentProducts = [];
+// currentUser now stores the profile data fetched from the 'users' table
 let currentUser = null; 
 let selectedProduct = null; 
-// **[ပြင်ဆင်ပြီး]**: currentAuthPhone အစား currentAuthEmail
+// **[ပြင်ဆင်ပြီး]**: Variable to hold the email address during the OTP flow
 let currentAuthEmail = null; 
 let currentLanguage = 'my';
-let languages = {};
-// **[script.js ၏ အစောပိုင်းပိုင်းတွင် ထည့်သွင်းပါ]**
 
-// Magic Link/OTP ဖြင့် Login ပြီးဆုံးကြောင်း စစ်ဆေးသော Code
+// --- SESSION LISTENER (CRITICAL FOR MAGIC LINK REDIRECT) ---
+// Magic Link နှိပ်ပြီးနောက် Session ကို စစ်ဆေးပြီး Redirect လုပ်ပေးမည့် Code
 supabase.auth.onAuthStateChange(async (event, session) => {
-    // ဤ event သည် Magic Link နှိပ်ပြီး Website သို့ ပြန်ရောက်လာသည့်အခါ အလုပ်လုပ်သည်။
     if (event === 'SIGNED_IN' && session) {
-        // Login အောင်မြင်ပါက Modal များကို ပိတ်ပြီး Session ကို စတင် load မည်။
         closeModal('authModal');
-        // loadUserSession() ကို ချက်ချင်း ခေါ်ပေးခြင်းဖြင့် User Data ကို load မည်။
+        // Load the user profile after authentication
         await loadUserSession(); 
         
         // Admin ဖြစ်မဖြစ် စစ်ပြီး သက်ဆိုင်ရာ Page သို့ Redirect လုပ်သည်
         if (currentUser && currentUser.is_admin) {
             window.location.href = 'admin.html';
         } else {
-             // Home Page သို့မဟုတ် လိုအပ်သော Page သို့ ပြန်ပို့သည်
+             // Home Page သို့ ပြန်ပို့သည်
              window.location.href = 'index.html'; 
         }
     }
 });
 
-// ဒါ့အပြင် Load Product တွေ မလုပ်ခင်မှာ Session အရင်စစ်ပါ။
-loadUserSession(); 
-
-
-// ===============================================
-// AUTHENTICATION FUNCTIONS
-// ===============================================
-
-// **[ပြင်ဆင်ပြီး]**: startAuth function ကို Email Auth အဖြစ် ပြောင်းလဲထားသည်
-async function startAuth() {
-    const email = document.getElementById('emailInput').value.trim(); // emailInput မှ တန်ဖိုးယူသည်
-    
-    if (!email) {
-        showSnackbar(getLocalizedText('email_required'), 'error'); 
-        return;
-    }
-
-    currentAuthEmail = email; // Email ကို သိမ်းဆည်း
-    
-    // Email ကို OTP/Magic Link ပို့ရန်
-    const { data, error } = await supabase.auth.signInWithOtp({ email: currentAuthEmail }); 
-    
-    if (error) {
-        showSnackbar(getLocalizedText('auth_fail') + ': ' + error.message, 'error');
-        console.error(error);
-    } else {
-        // UI ကို OTP Form သို့ ပြောင်း
-        document.getElementById('authForm').style.display = 'none';
-        document.getElementById('otpForm').style.display = 'block';
-        showSnackbar(getLocalizedText('otp_sent_to_email'), 'success');
-    }
-}
-
-// **[ပြင်ဆင်ပြီး]**: verifyOtp function ကို Email Auth အဖြစ် ပြောင်းလဲထားသည်
-async function verifyOtp(type) {
-    const otp = document.getElementById('otpInput').value.trim();
-    if (!otp) return;
-
-    // Email နဲ့ code ကို သုံးပြီး OTP စစ်ဆေးသည်
-    const { data: userData, error } = await supabase.auth.verifyOtp({ 
-        email: currentAuthEmail, 
-        token: otp, // code ကို token အနေဖြင့် ပို့သည်
-        type: 'email' // type ကို email အဖြစ် သတ်မှတ်
-    });
-
-    if (error) {
-        showSnackbar(getLocalizedText('otp_invalid'), 'error');
-        console.error(error);
-        return;
-    }
-    
-    // ... (ကျန်သော Logic များ)
-    const user = userData.user;
-    const userId = user.id;
-    const userEmail = user.email; // Email ကို ရယူ
-
-    if (type === 'register') {
-        // ... (Registration Logic)
-        const name = document.getElementById('registerName').value.trim();
-        // **[ဖုန်းနံပါတ်ဖြုတ်ပြီး]**: ဖုန်းနံပါတ်ကို မလိုအပ်တော့ပါ
-        // const phone = document.getElementById('registerPhone').value.trim(); 
-        
-        if (!name) {
-             showSnackbar(getLocalizedText('name_required'), 'error');
-             return;
-        }
-
-        const { error: insertError } = await supabase
-            .from('users')
-            .insert([
-                // NOTE: phone column ကို Supabase Table ထဲကနေ ဖျက်ပြီးသားဆိုရင် ဒီနေရာကိုလည်း ဖျက်ရပါမယ်။
-                { id: userId, email: userEmail, name: name } 
-            ]);
-
-        // ... (Error handling)
-        // ...
-    }
-    // ...
-}
-
-// ... (ကျန်သော Functions များ)
-
-// **[ပြင်ဆင်ပြီး]**: Logout function ကို index.html သို့ ပြောင်းလဲ
-function logout() {
-    doLogout(); 
-    window.location.href = 'index.html'; 
-}
 
 // --- TRANSLATION MAP (EN, MY, TH) ---
 const currentTranslations = {
@@ -132,7 +42,7 @@ const currentTranslations = {
         men_cat: "MEN'S FASHION", accessories: "Accessories",
         order_form: "Order Form", address_label: "Delivery Address (ပို့ဆောင်ရန်လိပ်စာ)", contact_label: "Contact Phone (ဆက်သွယ်ရန်ဖုန်း)", note_label: "Note (အကြောင်းအရာ)",
         slip_label: "Payment Slip (ပြေစာ)", send_btn: "Send to Admin", chat_title: "Support Chat", history_title: "My Orders",
-        settings_title: "Settings", dark_mode: "Dark Mode", language_title: "Language", login_tab: "Login", register_tab: "Register", phone_label: "Phone", pass_label: "OTP Code", login_btn: "Send OTP Code", register_btn: "Send OTP Code", logout_btn: "Logout", name_label: "Name",
+        settings_title: "Settings", dark_mode: "Dark Mode", language_title: "Language", login_tab: "Login", register_tab: "Register", phone_label: "Phone", pass_label: "OTP Code", login_btn: "Send Magic Link / OTP", register_btn: "Send Magic Link / OTP", logout_btn: "Logout", name_label: "Name", auth_info: "Use Email for Magic Link (OTP) login.", otp_info: "Enter the 6-digit code sent to your email.", verify_login_btn: "Verify & Login", email_required: "Please enter your email address.", auth_fail: "Authentication failed", otp_sent_to_email: "Magic Link/OTP code sent to your email.", otp_invalid: "Invalid OTP code.",
         order_sent_h3: "👾 Order sent!", order_sent_p: "Payment successful, delivery will be made soon.🎉", ok_btn: "OK",
         search_placeholder: "Search...", chat_reply: "Hello! How can I help you today?" 
     },
@@ -141,7 +51,7 @@ const currentTranslations = {
         men_cat: "အမျိုးသားဖက်ရှင်", accessories: "အသုံးအဆောင်",
         order_form: "မှာယူမှုပုံစံ", address_label: "ပို့ဆောင်ရန်လိပ်စာ", contact_label: "ဆက်သွယ်ရန်ဖုန်း", note_label: "အကြောင်းအရာ",
         slip_label: "ငွေလွှဲပြေစာ", send_btn: "Admin ထံသို့ ပို့မည်", chat_title: "အကူအညီချတ်", history_title: "မှာယူမှုမှတ်တမ်း",
-        settings_title: "ဆက်တင်များ", dark_mode: "ညမုဒ်", language_title: "ဘာသာစကား", login_tab: "ဝင်ရန်", register_tab: "အကောင့်ဖွင့်ရန်", phone_label: "ဖုန်းနံပါတ်", pass_label: "OTP ကုဒ်", login_btn: "OTP ကုဒ်ပို့မည်", register_btn: "OTP ကုဒ်ပို့မည်", logout_btn: "ထွက်မည်", name_label: "နာမည်",
+        settings_title: "ဆက်တင်များ", dark_mode: "ညမုဒ်", language_title: "ဘာသာစကား", login_tab: "ဝင်ရန်", register_tab: "အကောင့်ဖွင့်ရန်", phone_label: "ဖုန်းနံပါတ်", pass_label: "OTP ကုဒ်", login_btn: "Magic Link / OTP ပို့မည်", register_btn: "Magic Link / OTP ပို့မည်", logout_btn: "ထွက်မည်", name_label: "နာမည်", auth_info: "Email ဖြင့် Magic Link (OTP) ဝင်ပါ။", otp_info: "Email ထံ ပို့လိုက်သော ၆ လုံးကုဒ်ကို ရိုက်ထည့်ပါ။", verify_login_btn: "ကုဒ်စစ်ဆေး၍ ဝင်မည်", email_required: "Email လိပ်စာ ထည့်ပါ။", auth_fail: "ဝင်ရောက်မှု မအောင်မြင်ပါ", otp_sent_to_email: "Magic Link/OTP ကုဒ်ကို Email ထံ ပို့လိုက်ပါပြီ။", otp_invalid: "OTP ကုဒ် မှားယွင်းနေပါသည်။",
         order_sent_h3: "👾 မှာယူမှု အောင်မြင်! ", order_sent_p: "ငွေပေးချေမှုအောင်မြင်ပါပြီ၊ မကြာမီ ပို့ဆောင်ပေးပါမည်။🎉", ok_btn: "အိုကေ",
         search_placeholder: "ရှာဖွေပါ...", chat_reply: "မင်္ဂလာပါ... ဘာကူညီပေးရမလဲရှင့်?" 
     },
@@ -150,7 +60,7 @@ const currentTranslations = {
         men_cat: "แฟชั่นบุรุษ", accessories: "เครื่องประดับ",
         order_form: "แบบฟอร์มคำสั่งซื้อ", address_label: "ที่อยู่จัดส่ง", contact_label: "เบอร์ติดต่อ", note_label: "หมายเหตุ",
         slip_label: "สลิปการชำระเงิน", send_btn: "ส่งถึงแอดมิน", chat_title: "แชทสนับสนุน", history_title: "คำสั่งซื้อของฉัน",
-        settings_title: "การตั้งค่า", dark_mode: "โหมดกลางคืน", language_title: "ภาษา", login_tab: "เข้าสู่ระบบ", register_tab: "ลงทะเบียน", phone_label: "เบอร์โทรศัพท์", pass_label: "รหัส OTP", login_btn: "ส่งรหัส OTP", register_btn: "ส่งรหัส OTP", logout_btn: "ออกจากระบบ", name_label: "ชื่อ",
+        settings_title: "การตั้งค่า", dark_mode: "โหมดกลางคืน", language_title: "ภาษา", login_tab: "เข้าสู่ระบบ", register_tab: "ลงทะเบียน", phone_label: "เบอร์โทรศัพท์", pass_label: "รหัส OTP", login_btn: "ส่ง Magic Link / OTP", register_btn: "ส่ง Magic Link / OTP", logout_btn: "ออกจากระบบ", name_label: "ชื่อ", auth_info: "ใช้ Email สำหรับ Magic Link (OTP) ในการเข้าสู่ระบบ", otp_info: "ใส่รหัส 6 หลักที่ส่งไปยังอีเมลของคุณ", verify_login_btn: "ยืนยันและเข้าสู่ระบบ", email_required: "โปรดใส่อีเมลของคุณ", auth_fail: "การรับรองความถูกต้องล้มเหลว", otp_sent_to_email: "Magic Link/OTP ถูกส่งไปที่อีเมลของคุณแล้ว", otp_invalid: "รหัส OTP ไม่ถูกต้อง",
         order_sent_h3: "👾 ส่งคำสั่งซื้อแล้ว!", order_sent_p: "ชำระเงินสำเร็จแล้ว จะดำเนินการจัดส่งเร็วๆ นี้🎉", ok_btn: "ตกลง",
         search_placeholder: "ค้นหา...", chat_reply: "สวัสดีค่ะ มีอะไรให้ช่วยไหมคะ?" 
     }
@@ -275,13 +185,13 @@ async function loadUserSession() {
         let { data: profile, error: profileError } = await supabase
             .from('users')
             .select('*')
-            .eq('user_id', userId)
+            .eq('user_id', userId) // Assuming the profile table column is 'user_id'
             .single();
             
         if (profileError) {
             console.error("Error fetching profile:", profileError);
             // Could be a user who signed up but profile creation failed. Sign them out for cleanup.
-            await supabase.auth.signOut();
+            // await supabase.auth.signOut(); // NOTE: Avoid signing out here if profile table might be empty initially
             return;
         }
         currentUser = profile;
@@ -302,8 +212,13 @@ function applyLanguage(lang) {
     document.querySelector('#pageTitle').innerText = t.all; 
     
     // Update OTP button text after language change
-     document.getElementById('sendOtpBtn').innerText = t.login_btn;
-     document.getElementById('sendOtpRegisterBtn').innerText = t.register_btn;
+    // **[ပြင်ဆင်ပြီး]**: Login/Register Button များအတွက်
+     const loginBtn = document.getElementById('sendOtpBtn');
+     if (loginBtn) loginBtn.innerText = t.login_btn;
+     const regBtn = document.getElementById('sendOtpRegisterBtn');
+     if (regBtn) regBtn.innerText = t.register_btn;
+     const verifyBtn = document.querySelector('#otpForm button');
+     if (verifyBtn) verifyBtn.innerText = t.verify_login_btn;
 }
 
 function toggleLanguage(lang) {
@@ -432,7 +347,7 @@ function showSnackbar(message, type = 'default') {
     }, 3000);
 }
 
-// --- AUTH & HISTORY (OTP MODIFIED) ---
+// --- AUTH & HISTORY (EMAIL OTP MODIFIED) ---
 function checkAuth() { 
     if(currentUser) openHistory(); 
     else {
@@ -440,21 +355,16 @@ function checkAuth() {
         // Reset to default login view on open
         showAuthForm('login'); 
         // Clear any previous OTP steps
-        document.getElementById('lPhone').value = '';
-        document.getElementById('verifyOtpLogin').style.display = 'none';
-        document.getElementById('sendOtpBtn').style.display = 'block';
-
-        document.getElementById('rName').value = '';
-        document.getElementById('rPhone').value = '';
-        document.getElementById('verifyOtpRegister').style.display = 'none';
-        document.getElementById('sendOtpRegisterBtn').style.display = 'block';
-        currentAuthPhone = null;
+        document.getElementById('lOtp').value = '';
+        document.getElementById('rOtp').value = '';
+        document.getElementById('emailInput').value = ''; // **[CHANGE]** Reset email input
+        currentAuthEmail = null; // **[CHANGE]** Reset email variable
     }
 }
 
 function showAuthForm(type) {
     // Reset to Step 1 when switching tabs
-    currentAuthPhone = null;
+    currentAuthEmail = null; // **[CHANGE]**
 
     if(type === 'login') {
         document.getElementById('tabLogin').style.borderBottom = '2px solid #2d2d2d';
@@ -464,10 +374,10 @@ function showAuthForm(type) {
         document.getElementById('loginForm').style.display='block';
         document.getElementById('registerForm').style.display='none';
         
-        // Show Step 1 for Login
+        // Show Step 1 for Login (Email Input)
         document.getElementById('verifyOtpLogin').style.display = 'none';
         document.getElementById('sendOtpBtn').style.display = 'block';
-        document.getElementById('lPhone').value = ''; // Clear phone input on switch
+        document.getElementById('lPhone').value = ''; 
     } else {
         document.getElementById('tabLogin').style.borderBottom = 'none';
         document.getElementById('tabRegister').style.borderBottom = '2px solid #2d2d2d';
@@ -476,63 +386,67 @@ function showAuthForm(type) {
         document.getElementById('loginForm').style.display='none';
         document.getElementById('registerForm').style.display='block';
         
-        // Show Step 1 for Register
+        // Show Step 1 for Register (Name/Email Input)
         document.getElementById('verifyOtpRegister').style.display = 'none';
         document.getElementById('sendOtpRegisterBtn').style.display = 'block';
-        document.getElementById('rName').value = ''; // Clear name input on switch
-        document.getElementById('rPhone').value = ''; // Clear phone input on switch
+        document.getElementById('rName').value = ''; 
+        document.getElementById('rPhone').value = ''; 
     }
 }
 
-// --- OTP Step 1: Send OTP to Phone ---
-async function sendOtp(type) {
-    let phone, btn;
+// **[NEW FUNCTION]**: startAuth - Replacing the old sendOtp with Email Magic Link/OTP
+async function startAuth(type) {
+    let email, btn;
     
-    if (type === 'login') {
-        phone = document.getElementById('lPhone').value.trim();
-        btn = document.getElementById('sendOtpBtn');
-    } else { // register
-        const name = document.getElementById('rName').value.trim();
-        if (!name) {
-            showSnackbar("Please enter your name for registration.", 'error');
-            return;
-        }
-        phone = document.getElementById('rPhone').value.trim();
-        btn = document.getElementById('sendOtpRegisterBtn');
-    }
-
-    if (!phone) {
-        showSnackbar("Please enter your phone number.", 'error');
+    // We assume the main email input is outside the form tabs now (as per index.html fix suggestion)
+    // But since the current index.html uses lPhone, we adapt here temporarily to lPhone input element
+    // NOTE: User should update index.html to use #emailInput
+    const emailInputId = (type === 'login') ? 'lPhone' : 'rPhone';
+    email = document.getElementById(emailInputId).value.trim();
+    
+    // Determine the button
+    btn = (type === 'login') ? document.getElementById('sendOtpBtn') : document.getElementById('sendOtpRegisterBtn');
+    
+    if (!email) {
+        showSnackbar(currentTranslations[currentLang].email_required, 'error'); 
         return;
     }
     
-    const cleanedPhone = phone.replace(/\D/g, ''); 
-    
-    if (cleanedPhone.length < 6) { // Basic check
-         showSnackbar("Invalid phone number format.", 'error');
-         return;
+    if (type === 'register') {
+        const name = document.getElementById('rName').value.trim();
+        if (!name) {
+            showSnackbar(getLocalizedText('name_required'), 'error');
+            return;
+        }
     }
-    
-    currentAuthPhone = cleanedPhone; // Store the phone number
+
+    currentAuthEmail = email; 
     
     const originalText = btn.innerText;
     btn.innerText = "Sending...";
     btn.disabled = true;
 
-    // Use Supabase signInWithOtp with the 'phone' option
+    // **[CRITICAL REDIRECT FIX]**: Redirect URL ကို တိုက်ရိုက်သတ်မှတ်သည်
+    const redirectToURL = 'https://joaquinphoenixcloud-maker.github.io/Fashion-Lab/';
+    
+    // Use Supabase signInWithOtp for Email Magic Link / OTP
     const { error: otpError } = await supabase.auth.signInWithOtp({ 
-        phone: cleanedPhone 
-    });
+        email: currentAuthEmail,
+        options: {
+            emailRedirectTo: redirectToURL 
+        }
+    }); 
 
     if (otpError) {
-        showSnackbar("Error sending OTP: " + otpError.message, 'error');
+        showSnackbar(getLocalizedText('auth_fail') + ': ' + otpError.message, 'error');
         btn.innerText = originalText;
         btn.disabled = false;
         return;
     }
     
-    showSnackbar(`OTP code sent to ${cleanedPhone}.`, 'success');
+    showSnackbar(getLocalizedText('otp_sent_to_email'), 'success');
 
+    // Show OTP input field (for non-Magic Link, i.e., OTP Code)
     if (type === 'login') {
         document.getElementById('sendOtpBtn').style.display = 'none';
         document.getElementById('verifyOtpLogin').style.display = 'block';
@@ -542,25 +456,26 @@ async function sendOtp(type) {
     }
 
     btn.innerText = originalText;
-    btn.disabled = false; // Re-enable in case they want to retry sending
+    btn.disabled = false;
 }
 
-// --- OTP Step 2: Verify OTP and Login/Register ---
+// **[MODIFIED FUNCTION]**: verifyOtp - For Email OTP Verification
 async function verifyOtp(type) {
     let otp, btn, name = null;
     
-    if (!currentAuthPhone) {
-         showSnackbar("Please send OTP first.", 'error');
+    if (!currentAuthEmail) { 
+         showSnackbar("Please enter your email and send OTP first.", 'error');
          return;
     }
 
-    if (type === 'login') {
-        otp = document.getElementById('lOtp').value.trim();
-        btn = document.getElementById('verifyOtpLogin').querySelector('button');
-    } else { // register
-        otp = document.getElementById('rOtp').value.trim();
-        btn = document.getElementById('verifyOtpRegister').querySelector('button');
-        name = document.getElementById('rName').value.trim(); // Get name for registration
+    // Adapt to existing HTML structure's OTP inputs
+    otp = (type === 'login') ? document.getElementById('lOtp').value.trim() : document.getElementById('rOtp').value.trim();
+    
+    // Determine the button to update status
+    btn = (type === 'login') ? document.getElementById('verifyOtpLogin').querySelector('button') : document.getElementById('verifyOtpRegister').querySelector('button');
+    
+    if (type === 'register') {
+        name = document.getElementById('rName').value.trim();
     }
 
     if (!otp) {
@@ -572,27 +487,28 @@ async function verifyOtp(type) {
     btn.innerText = "Verifying...";
     btn.disabled = true;
 
-    // Use Supabase verifyOtp
+    // Use Supabase verifyOtp for Email
     const { data: authData, error: authError } = await supabase.auth.verifyOtp({
-        phone: currentAuthPhone,
+        email: currentAuthEmail, 
         token: otp,
-        type: 'sms'
+        type: 'email' 
     });
 
     if (authError) {
-        showSnackbar("OTP verification failed: " + authError.message, 'error');
+        showSnackbar(getLocalizedText('otp_invalid') + ": " + authError.message, 'error');
         btn.innerText = originalText;
         btn.disabled = false;
         return;
     }
-
+    
     const userId = authData.user.id;
+    const userEmail = authData.user.email;
 
     if (type === 'register') {
          // ** Registration flow **
         if (!name) { 
             showSnackbar("Name is missing. Please try registering again.", 'error');
-            await supabase.auth.signOut(); // Force sign out if registered without name
+            await supabase.auth.signOut(); 
             btn.innerText = originalText;
             btn.disabled = false;
             return;
@@ -600,40 +516,38 @@ async function verifyOtp(type) {
         
         // 2. Insert user profile into the custom 'users' table
         let { error: profileError } = await supabase.from('users').insert([
-            { user_id: userId, name: name, phone: currentAuthPhone }
+            // NOTE: We only include user_id, name and email. Remove 'phone' column from DB.
+            { user_id: userId, name: name, email: userEmail }
         ]);
     
         if (profileError) {
-            showSnackbar("Profile saving failed. Please contact support.", 'error');
-            // The user is authenticated but profile is missing. We let them proceed but warn.
-            // In a real app, you might force sign out here or redirect to a profile completion page.
+            showSnackbar("Profile saving failed. " + profileError.message, 'error');
         }
 
-        showSnackbar("Registration & Login successful!", 'success');
+        showSnackbar("Registration & Login successful! Redirecting...", 'success');
     }
     
     // ** Login/Post-Registration Flow **
     
     // 3. Fetch User Profile from custom table
-    let { data: profileData, error: profileError } = await supabase
+    let { data: profileData } = await supabase
         .from('users')
         .select('*')
         .eq('user_id', userId)
         .single();
-
-    if (profileError || !profileData) {
-        // If profile is missing for a logged-in user, they might be new or profile creation failed.
-        // In this OTP flow, if they registered, profile should exist. 
-        // If they logged in, we must assume they are registered.
-         showSnackbar("Profile not found. Please contact support.", 'error');
-         // Don't sign out, as they are authenticated, but warn.
-    }
     
     currentUser = profileData;
     closeModal('authModal'); 
     updateUserUI(); 
     openHistory();
-    if (type === 'login') showSnackbar("Login successful!", 'success'); 
+    showSnackbar("Login successful!", 'success'); 
+    
+    // Redirect logic for OTP flow completion
+    if (currentUser && currentUser.is_admin) {
+        window.location.href = 'admin.html';
+    } else {
+         window.location.href = 'index.html';
+    }
     
     btn.innerText = originalText;
     btn.disabled = false;
@@ -646,6 +560,13 @@ async function doLogout() {
     updateUserUI(); 
     showSnackbar("Logged out successfully.", 'success');
 }
+
+// **[MODIFIED LOGOUT FUNCTION]**: Client-side logout wrapper
+function clientLogout() {
+    doLogout(); 
+    window.location.href = 'index.html'; 
+}
+
 
 async function openHistory() {
     if(!currentUser) { return; }
@@ -814,6 +735,7 @@ function openCheckoutFromDetails() {
     
     // Set the consolidated note and contact phone
     document.getElementById('noteInput').value = orderNote; 
+    // **[ပြင်ဆင်ပြီး]**: Phone input ကို currentUser ကနေ ယူသည်
     document.getElementById('contactPhoneInput').value = currentUser.phone || ''; 
     
     // Reset slip input and button state for a fresh order
@@ -930,7 +852,7 @@ function switchTab(t) {
 // in Supabase to mark admin users.
 async function checkAdminAccess() {
     // Session ကို အရင်စစ်မယ်
-    await loadUserSession(); // This function (Line 144) populates currentUser
+    await loadUserSession(); // This function populates currentUser
 
     // currentUser ရဲ့ 'is_admin' ကို စစ်မယ်
     // Profile မရှိသေးရင်လည်း access ငြင်းပါမယ်
@@ -940,7 +862,7 @@ async function checkAdminAccess() {
     } else {
         // Admin မဟုတ်ရင် (သို့) Login မလုပ်ရသေးရင် Home page ကို ပြန်ပို့မယ်
         alert("Admin Access Denied. Redirecting to home.");
-        window.location.href = 'indexOOO.html'; 
+        window.location.href = 'index.html'; // **[ပြင်ဆင်ပြီး]**: indexOOO.html အစား index.html
     }
 }
 
@@ -1031,10 +953,10 @@ function switchAdminTab(tabId) {
 }
 
 // 5. Logout for Admin Page (Reusing existing doLogout function)
-function logout() {
+function logout() { // This function is called from admin.html
     doLogout(); 
     // Logout လုပ်ပြီးရင် home page ကို ပြန်ပို့
-    window.location.href = 'indexOOO.html'; 
+    window.location.href = 'index.html'; // **[ပြင်ဆင်ပြီး]**: indexOOO.html အစား index.html
 }
 
 // 6. Basic Product Add (Placeholder - For Admin to add products)
