@@ -1,46 +1,135 @@
-/* Add to the end of styleOOO.css */
+/* COLOR THEME */
+:root {
+    --bg-color: #f9f9f9; 
+    --text-color: #333;
+    --header-bg: #4a148c; /* Deep Purple */
+    --header-text: #ffffff;
+    --card-bg: #ffffff; 
+    --accent-color: #e91e63; /* Pink */
+    --vibrant-blue: #03a9f4; 
+}
+/* Dark Mode */
+body.dark-mode {
+    --bg-color: #121212; 
+    --text-color: #e0e0e0;
+    --header-bg: #000000; 
+    --header-text: #ffffff;
+    --card-bg: #1e1e1e;
+    --vibrant-blue: #4fc3f7;
+}
 
-.order-item {
-    background: var(--card-bg);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    border-left: 5px solid var(--accent-color);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    /* Dark mode support and smooth transitions */
-    transition: background 0.3s, border-left 0.3s; 
+body { font-family: 'Helvetica Neue', sans-serif; margin: 0; padding: 0; background: var(--bg-color); color: var(--text-color); transition: 0.3s; }
+
+/* HEADER */
+header { background: var(--header-bg); color: var(--header-text); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.nav-icons i { font-size: 20px; margin-left: 20px; cursor: pointer; position: relative; }
+.user-dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #4CAF50; border-radius: 50%; display: none; border: 1px solid white; }
+
+/* MENU & OVERLAY */
+.overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 150; }
+.overlay.active { display: block; }
+.side-menu { height: 100%; width: 280px; position: fixed; top: 0; left: -280px; background: var(--card-bg); transition: left 0.3s; z-index: 200; display: flex; flex-direction: column; }
+.side-menu.active { left: 0; }
+.menu-tabs { display: flex; height: 50px; border-bottom: 1px solid #ddd; }
+.tab { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; background: var(--card-bg); color: #777; }
+.tab.active { border-bottom: 3px solid var(--accent-color); color: var(--text-color); background: var(--bg-color); }
+.menu-content { flex: 1; overflow-y: auto; }
+.menu-section { display: none; }
+.menu-section.active { display: block; }
+.menu-item { padding: 15px 20px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.menu-footer { padding: 20px; text-align: center; background: var(--bg-color); font-size: 12px; color: #666; border-top: 1px solid #ddd; }
+
+/* SLIDER */
+.slider-container { position: relative; width: 95%; margin: 15px auto; overflow: hidden; border-radius: 15px; height: 200px; }
+.slider-wrapper { display: flex; transition: transform 0.5s ease-in-out; height: 100%; }
+.slide { min-width: 100%; height: 100%; }
+.slide img { width: 100%; height: 100%; object-fit: cover; border-radius: 15px; }
+.dots-container { text-align: center; margin-top: -25px; position: relative; z-index: 10; padding-bottom: 10px;}
+.dot { background-color: rgba(255,255,255,0.5); height: 8px; width: 8px; margin: 0 4px; border-radius: 50%; display: inline-block; transition: background-color 0.3s; }
+.dot.active { background-color: var(--header-text); width: 20px; border-radius: 4px; }
+
+/* PRODUCTS GRID (FLEX FIX) */
+.main-content { padding: 15px; padding-bottom: 80px; }
+.section-title { font-size: 18px; font-weight: bold; margin: 20px 0 10px 0; }
+
+.product-grid { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 15px; 
 }
-.order-item h4 {
-    margin-top: 0;
-    color: var(--accent-color);
-    border-bottom: 1px solid rgba(153, 153, 153, 0.1); /* Separator for title */
-    padding-bottom: 5px;
+.product-card { 
+    background: var(--card-bg); 
+    border-radius: 8px; 
+    overflow: hidden; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+    position: relative; 
+    display: flex; 
+    flex-direction: column; 
+    width: calc(50% - 7.5px); /* Correct width for 2 columns */
 }
-.order-item p {
-    margin: 5px 0;
-    font-size: 14px;
-}
-.order-status-btn {
-    padding: 8px 15px;
-    margin-top: 10px;
-    border: none;
+.p-img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
+.p-info { padding: 10px; padding-bottom: 50px; }
+.p-name { font-size: 13px; height: 36px; overflow: hidden; margin-bottom: 5px; }
+.p-price { font-weight: bold; font-size: 14px; color: var(--text-color); }
+/* [MODIFIED] Button to open details, not checkout directly */
+.cart-btn { position: absolute; bottom: 10px; right: 10px; background: var(--vibrant-blue); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 50; box-shadow: 0 3px 8px rgba(0,0,0,0.3); }
+
+/* CHAT & MODALS */
+.support-btn { position: fixed; bottom: 20px; right: 20px; background: var(--vibrant-blue); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; z-index: 200; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.chat-box { display: none; position: fixed; bottom: 80px; right: 20px; width: 300px; height: 400px; background: var(--card-bg); border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 200; flex-direction: column; overflow: hidden; border: 1px solid #ddd; }
+.chat-header { background: var(--vibrant-blue); color: white; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; }
+.chat-body { flex: 1; padding: 10px; overflow-y: auto; font-size: 14px; }
+.chat-input-area { display: flex; border-top: 1px solid #ddd; }
+.chat-input { flex: 1; padding: 10px; border: none; outline: none; background: var(--card-bg); color: var(--text-color); }
+.chat-send { padding: 0 15px; background: var(--card-bg); border: none; color: var(--vibrant-blue); cursor: pointer; }
+
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+.modal-content { background: var(--card-bg); width: 90%; max-width: 350px; border-radius: 10px; padding: 20px; max-height: 90vh; overflow-y: auto; color: var(--text-color); }
+.close-modal { float: right; font-size: 24px; cursor: pointer; }
+
+.pay-row { display: flex; align-items: center; margin-bottom: 10px; padding: 10px; background: #f4f4f4; border-radius: 5px; color: #333; border: 1px solid #eee; }
+.pay-icon { width: 45px; height: 45px; border-radius: 8px; margin-right: 15px; object-fit: cover; }
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+.input-group input, .input-group textarea, .input-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); }
+.order-btn { width: 100%; padding: 12px; background: var(--accent-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+
+#searchBox { display: none; background: var(--card-bg); padding: 10px; position: sticky; top: 60px; z-index: 99; border-bottom: 1px solid #ddd; }
+#searchInput { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; background: var(--bg-color); color: var(--text-color); }
+
+.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
+.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--vibrant-blue); }
+input:checked + .slider:before { transform: translateX(20px); }
+#langSelect { padding: 8px 10px; border: 1px solid #ddd; border-radius: 5px; background: var(--bg-color); color: var(--text-color); font-size: 14px; cursor: pointer; }
+.history-item { background: var(--bg-color); padding: 10px; border-radius: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+/* SNACKBAR/TOAST STYLES */
+#snackbar {
+    visibility: hidden; 
+    min-width: 250px;
+    margin-left: -125px; /* Center the snackbar */
+    background-color: #333; 
+    color: #fff;
+    text-align: center;
     border-radius: 5px;
-    cursor: pointer;
-    color: white;
-    font-weight: bold;
-    transition: background-color 0.2s;
+    padding: 16px;
+    position: fixed;
+    z-index: 10000; /* High z-index to be on top of modals */
+    left: 50%;
+    bottom: 30px; 
+    font-size: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    transition: visibility 0s, opacity 0.5s linear;
+    opacity: 0;
 }
+#snackbar.show {
+    visibility: visible;
+    opacity: 1;
+}
+#snackbar.error { background-color: #d32f2f; } /* Red for error */
+#snackbar.success { background-color: #4CAF50; } /* Green for success */
 
-/* Status Colors for Admin UI (Matching script.js logic) */
-.order-status-btn.neworder, .order-status-btn.pending {
-    background-color: #f44336; /* Red: New or Waiting for payment */
-}
-.order-status-btn.processing {
-    background-color: #ff9800; /* Orange: Currently preparing */
-}
-.order-status-btn.shipped {
-    background-color: #2196f3; /* Blue: Out for delivery */
-}
-.order-status-btn.delivered {
-    background-color: #4CAF50; /* Green: Complete */
-}
