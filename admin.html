@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Fashion Lab</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css"> 
+</head>
+<body>
+
+    <div class="admin-container">
+        <div class="sidebar">
+            <div class="admin-header">Admin Panel</div>
+            <div class="menu-item active" onclick="showSection('orders')">
+                <i class="fas fa-shopping-cart"></i> Orders
+            </div>
+            <div class="menu-item" onclick="showSection('products')">
+                <i class="fas fa-box-open"></i> Products
+            </div>
+            <div class="menu-item logout-btn" onclick="doAdminLogout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </div>
+        </div>
+
+        <div class="main-content">
+            
+            <div id="orders-section" class="content-section active">
+                <h2><i class="fas fa-shopping-cart"></i> Order Management</h2>
+                <div class="orders-filters">
+                    <button class="filter-btn active" onclick="loadOrders('all')">All (အကုန်)</button>
+                    <button class="filter-btn" onclick="loadOrders('pending')">Pending (စောင့်ဆိုင်းဆဲ)</button>
+                    <button class="filter-btn" onclick="loadOrders('coming')">Coming (ပို့ဆောင်ဆဲ)</button>
+                    <button class="filter-btn" onclick="loadOrders('owned')">Owned (ရရှိပြီး)</button>
+                    <button class="filter-btn" onclick="loadOrders('reject')">Rejected (ပယ်ချ)</button>
+                </div>
+                
+                <table id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Item</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+
+            <div id="products-section" class="content-section">
+                <h2><i class="fas fa-box-open"></i> Product Management</h2>
+                <button class="add-product-btn" onclick="openProductModal()">+ Add New Product</button>
+                
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Category</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+            
+        </div>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('productModal')">&times;</span>
+            <h3 id="modal-title">Add/Edit Product</h3>
+            <div class="input-group">
+                <label for="pName">Product Name</label>
+                <input type="text" id="pName">
+            </div>
+            <button class="save-btn" onclick="saveProduct()">Save Product</button>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="scriptOOO.js"></script> 
+    <script src="admin.js"></script> 
+</body>
+</html>
