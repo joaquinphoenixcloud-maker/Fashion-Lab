@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - 2FA Required</title>
+    
+    <link rel="stylesheet" href="styleOOO.css"> 
+    <style>
+        /* Admin Login အတွက် သီးသန့် Style */
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            background-color: var(--bg-color); 
+        }
+        .login-box { 
+            background: var(--card-bg); 
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 400px;
+        }
+        .login-box h2 { 
+            text-align: center; 
+            color: var(--header-bg); 
+            margin-bottom: 25px; 
+        }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            box-sizing: border-box; 
+        }
+        .auth-btn { 
+            width: 100%; 
+            padding: 12px; 
+            background-color: var(--accent-color); /* Pink color */
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            transition: background 0.3s;
+        }
+        .auth-btn:hover { background-color: #d81b60; }
+        
+        /* 2FA ပြီးမှ ပေါ်လာမည့် Section */
+        #otp-section { display: none; margin-top: 20px; }
+        #message { margin-top:15px; font-weight: bold; }
+    </style>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="scriptOOO.js"></script>
+</head>
+<body>
+
+    <div class="login-box">
+        <h2>Admin Panel Login (2FA)</h2>
+
+        <div id="password-section">
+            <div class="input-group">
+                <label for="adminEmail">Admin Email</label>
+                <input type="email" id="adminEmail" placeholder="admin@yourshop.com" required>
+            </div>
+            <div class="input-group">
+                <label for="adminPassword">Password</label>
+                <input type="password" id="adminPassword" required>
+            </div>
+            <button class="auth-btn" onclick="sendOtp()">Login & Send OTP</button>
+        </div>
+        
+        <div id="otp-section">
+             <p>OTP code has been sent to your registered Admin phone.</p>
+            <div class="input-group">
+                <label for="otpCode">Verification Code</label>
+                <input type="text" id="otpCode" placeholder="6-digit code" maxlength="6" required>
+            </div>
+            <button class="auth-btn" onclick="verifyOtp()">Verify OTP & Enter</button>
+        </div>
+        
+        <div id="message" style="color:red; text-align:center;"></div>
+
+    </div>
+
+    <script src="admin-login.js"></script>
+
+</body>
+</html>
