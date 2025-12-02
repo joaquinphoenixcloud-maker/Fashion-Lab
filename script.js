@@ -811,5 +811,153 @@ function switchTab(t) {
     else { 
         document.querySelectorAll('.tab')[1].classList.add('active'); 
         document.getElementById('men-menu').classList.add('active'); 
+    // --- ADMIN FUNCTIONS ---
+
+// 1. Admin Access Check
+// NOTE: This assumes you have an 'is_admin' column (boolean) in your 'users' table 
+// in Supabase to mark admin users.
+async function checkAdminAccess() {
+    // Session ကို အရင်စစ်မယ်
+    await loadUserSession(); // This function (Line 144) populates currentUser
+
+    // currentUser ရဲ့ 'is_admin' ကို စစ်မယ်
+    // Profile မရှိသေးရင်လည်း access ငြင်းပါမယ်
+    if (currentUser && currentUser.is_admin === true) {
+        document.getElementById('adminContent').style.display = 'block';
+        loadOrdersForAdmin(); // Admin ဖြစ်ရင် Order တွေ စတင် load မယ်
+    } else {
+        // Admin မဟုတ်ရင် (သို့) Login မလုပ်ရသေးရင် Home page ကို ပြန်ပို့မယ်
+        alert("Admin Access Denied. Redirecting to home.");
+        window.location.href = 'indexOOO.html'; 
+    }
+}
+
+// 2. Load Orders for Admin
+async function loadOrdersForAdmin() {
+    // အမှာစာအားလုံးကို created_at အသစ်ဆုံးကနေ အရင်ဆွဲထုတ်မယ်
+    const { data: orders, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    const container = document.getElementById('ordersContainer');
+    container.innerHTML = ''; // ရှိပြီးသား content ကို ဖျက်မယ်
+
+    if (error) {
+        showSnackbar(`Error loading orders: ${error.message}`, 'error');
+        container.innerHTML = '<p>Error loading orders.</p>';
+        return;
+    }
+
+    document.getElementById('orderCount').innerText = orders.length;
+
+    if (orders.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#999;">No orders found yet.</p>';
+        return;
+    }
+
+    orders.forEach(order => {
+        // Status အရောင်ပြောင်းဖို့အတွက်
+        let statusClass = order.status ? order.status.toLowerCase().replace(/\s/g, '') : 'neworder'; 
+
+        const orderHtml = `
+            <div class="order-item">
+                <h4>Order #${order.id || 'N/A'} - ${order.status || 'New Order'}</h4>
+                <p><strong>Customer:</strong> ${order.customer_name || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${order.customer_phone || 'N/A'}</p>
+                <p><strong>Address:</strong> ${order.address || 'N/A'}</p>
+                <p><strong>Price:</strong> ${order.price || 'N/A'}</p>
+                <p><strong>Items:</strong> ${order.item_name || 'N/A'} (${order.note || 'N/A'})</p>
+                <button class="order-status-btn ${statusClass}" 
+                        onclick="updateOrderStatus(${order.id}, '${order.status || 'New Order'}')">
+                    Change Status
+                </button>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', orderHtml);
+    });
+}
+
+// 3. Update Order Status (Basic implementation)
+async function updateOrderStatus(orderId, currentStatus) {
+    let newStatus = '';
+    // Status တွေကို တစ်ဆင့်ပြီး တစ်ဆင့် ပြောင်းဖို့ logic
+    if (currentStatus === 'New Order' || currentStatus === 'pending') newStatus = 'Processing';
+    else if (currentStatus === 'Processing') newStatus = 'Shipped';
+    else if (currentStatus === 'Shipped') newStatus = 'Delivered';
+    else newStatus = 'New Order'; // ပြန်လည်စတင်
+
+    const btn = event.currentTarget;
+    btn.innerText = "Updating...";
+    btn.disabled = true;
+
+    const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+    if (error) {
+        showSnackbar(`Failed to update status: ${error.message}`, 'error');
+    } else {
+        showSnackbar(`Order #${orderId} status updated to ${newStatus}`, 'success');
+        loadOrdersForAdmin(); // UI ကို refresh လုပ်မယ်
+    }
+}
+
+// 4. Admin UI Tab Switching
+function switchAdminTab(tabId) {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-content-section').forEach(s => s.classList.remove('active'));
+
+    document.querySelector(`.admin-tab[onclick*='${tabId}']`).classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    
+    // Orders tab ကို နှိပ်ရင် Order တွေကို ပြန် load မယ်
+    if (tabId === 'orders') {
+        loadOrdersForAdmin();
+    }
+}
+
+// 5. Logout for Admin Page (Reusing existing doLogout function)
+function logout() {
+    doLogout(); 
+    // Logout လုပ်ပြီးရင် home page ကို ပြန်ပို့
+    window.location.href = 'indexOOO.html'; 
+}
+
+// 6. Basic Product Add (Placeholder - For Admin to add products)
+async function addProduct(event) {
+    event.preventDefault(); // Form submission ကို တားမယ်
+
+    // NOTE: Image upload ကို Client-side မှာ တိုက်ရိုက်လုပ်တာဟာ လုံခြုံရေးအရ မကောင်းပါဘူး။ 
+    // Supabase Storage RLS ကို သေသေချာချာ သတ်မှတ်ဖို့ လိုအပ်ပါတယ်။
+    
+    showSnackbar("Product Management is a placeholder. Requires secure implementation (Image Upload & Data Validation).", 'error');
+
+    const name = document.getElementById('pName').value.trim();
+    const price = document.getElementById('pPrice').value.trim();
+    
+    if (!name || !price) {
+        showSnackbar("Please fill in Product Name and Price.", 'error');
+        return;
+    }
+    
+    // Sample insertion
+    /*
+    const newProduct = {
+        name: name,
+        price: price,
+        description: document.getElementById('pDesc').value,
+        // ...
+    };
+    const { error } = await supabase.from('products').insert([newProduct]);
+    if (!error) {
+        showSnackbar("Product added successfully!", 'success');
+        document.getElementById('productForm').reset();
+        // loadProducts('all', 'All Products', 'women'); // Main page ကို refresh လုပ်ဖို့
+    }
+    */
+}
+
     }
 }
