@@ -14,6 +14,20 @@
 
     <div class="overlay" onclick="toggleMenu()"></div>
     
+    <header>
+        <div class="header-left">
+            <i class="fas fa-bars" onclick="toggleMenu()"></i>
+            <h1 id="pageTitle">All Products</h1>
+        </div>
+        <div class="header-right">
+            <i class="fas fa-search" onclick="toggleSearch()"></i>
+            <div class="nav-icons">
+                <i class="fas fa-user-circle" onclick="checkAuth()"></i>
+                <div id="userDot" style="display:none; width:8px; height:8px; background:#4CAF50; border-radius:50%; position:absolute; top:12px; right:12px;"></div>
+            </div>
+        </div>
+    </header>
+
     <div class="side-menu" id="sideMenu">
         <div class="menu-tabs">
             <div class="tab active" onclick="switchTab('women')">WOMEN</div>
@@ -22,169 +36,150 @@
         <div class="menu-content">
             <div id="women-menu" class="menu-section active">
                 <div style="padding:15px; background:var(--bg-color); font-weight:bold;" data-t="shop_cat">WOMEN'S FASHION</div>
-                <div class="menu-item" onclick="loadProducts('all', 'All Products', 'women')"><span data-t="all">All Products</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('clothing', 'Clothing', 'women')"><span data-t="clothing">Clothing</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('shoes', 'Shoes', 'women')"><span data-t="shoes">Shoes</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('bag', 'Bags', 'women')"><span data-t="bag">Bags</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('all', currentTranslations[currentLang].all, 'women')"><span data-t="all">All Products</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('clothing', currentTranslations[currentLang].clothing, 'women')"><span data-t="clothing">Clothing</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('shoes', currentTranslations[currentLang].shoes, 'women')"><span data-t="shoes">Shoes</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('bag', currentTranslations[currentLang].bag, 'women')"><span data-t="bag">Bags</span> <i class="fas fa-chevron-right"></i></div>
             </div>
             <div id="men-menu" class="menu-section">
                 <div style="padding:15px; background:var(--bg-color); font-weight:bold;" data-t="men_cat">MEN'S FASHION</div>
-                <div class="menu-item" onclick="loadProducts('all', 'Men All Products', 'men')"><span data-t="all">All Products</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('clothing', 'Men Clothing', 'men')"><span data-t="clothing">Clothing</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('shoes', 'Men Shoes', 'men')"><span data-t="shoes">Shoes</span> <i class="fas fa-chevron-right"></i></div>
-                <div class="menu-item" onclick="loadProducts('accessories', 'Accessories', 'men')"><span data-t="accessories">Accessories</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('all', currentTranslations[currentLang].all, 'men')"><span data-t="all">All Products</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('clothing', currentTranslations[currentLang].clothing, 'men')"><span data-t="clothing">Clothing</span> <i class="fas fa-chevron-right"></i></div>
+                <div class="menu-item" onclick="loadProducts('accessories', currentTranslations[currentLang].accessories, 'men')"><span data-t="accessories">Accessories</span> <i class="fas fa-chevron-right"></i></div>
             </div>
         </div>
-        <div class="menu-footer">Yangon, Myanmar<br>09752965423<br>@ Fashion Lab 2025</div>
+        <div class="menu-footer">
+            <div class="menu-item" onclick="openSettings()"><i class="fas fa-cog"></i> <span data-t="settings_title">Settings</span></div>
+            <div class="menu-item" onclick="checkAuth()"><i class="fas fa-history"></i> <span data-t="history_title">My Orders</span></div>
+            </div>
     </div>
-
-    <header>
-        <div onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
-        <div style="font-weight:bold; font-size: 20px; color: var(--accent-color); text-shadow: 0 1px 1px rgba(0,0,0,0.1);">Fashion Lab</div>
-        <div class="nav-icons">
-            <i class="fas fa-search" onclick="toggleSearch()"></i>
-            <i class="fas fa-user" onclick="checkAuth()"><span class="user-dot" id="userDot"></span></i>
-            <i class="fas fa-cog" onclick="openSettings()"></i>
+    
+    <div class="content">
+        <div id="searchBox" style="display:none; padding:10px 0;">
+            <input type="text" id="searchInput" placeholder="Search..." oninput="searchProducts()">
         </div>
-    </header>
-    <div id="searchBox"><input type="text" id="searchInput" placeholder="Search..." onkeyup="searchProducts()"></div>
-
-    <div class="main-content">
+        
         <div class="slider-container">
             <div class="slider-wrapper" id="sliderWrapper">
-                <div class="slide"><img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800" alt="Banner 1"></div>
+                </div>
+            <div class="dots-container" id="dotsContainer">
+                </div>
+        </div>
+
+        <div id="loading" class="loading-spinner" style="display:none;"></div>
+        <div class="products-container" id="productsContainer">
             </div>
-            <div class="dots-container" id="dotsContainer"></div>
-        </div>
-
-        <div class="section-title" id="pageTitle">All Products</div>
-        <div id="loading" style="text-align:center; padding:20px; display:none;">Loading...</div>
-        <div class="product-grid" id="productsContainer"></div>
     </div>
-
-    <div class="support-btn" onclick="toggleChat()"><i class="fas fa-comment-dots"></i></div>
-    <div class="chat-box" id="chatBox">
-        <div class="chat-header" data-t="chat_title">Support Chat</div>
+    
+    <div class="chat-toggle" onclick="toggleChat()">
+        <i class="fas fa-comments"></i>
+    </div>
+    
+    <div class="chat-box" id="chatBox" style="display:none;">
+        <div class="chat-header" onclick="toggleChat()">
+            <h4 data-t="chat_title">Support Chat</h4>
+            <i class="fas fa-times"></i>
+        </div>
         <div class="chat-body" id="chatBody">
-            <div style="background:#eee; color:#333; padding:8px; border-radius:5px; display:inline-block; margin-bottom:5px;">မင်္ဂလာပါ... ဘာကူညီပေးရမလဲရှင့်?</div>
+            <div style="background:#ddd; padding:8px; border-radius:5px; margin-bottom:10px; display:table;">မင်္ဂလာပါ... ဘာကူညီပေးရမလဲရှင့်?</div>
         </div>
-        <div class="chat-input-area">
-            <input type="text" class="chat-input" id="chatInput" placeholder="Type message...">
-            <button class="chat-send" onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+        <div class="chat-footer">
+            <input type="text" id="chatInput" placeholder="စာပို့ပါ..." onkeydown="if(event.key === 'Enter') sendChatMessage()">
+            <i class="fas fa-paper-plane" onclick="sendChatMessage()"></i>
         </div>
     </div>
-
+    
     <div class="modal" id="settingsModal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('settingsModal')">&times;</span>
-            <h3 data-t="settings_title">Settings</h3>
-            <div class="setting-row">
-                <span data-t="dark_mode">Dark Mode</span>
-                <label class="switch"><input type="checkbox" onchange="toggleTheme(this)" id="darkModeToggle"><span class="slider"></span></label>
+            <div class="modal-header">
+                <h3 data-t="settings_title">Settings</h3>
+                <i class="fas fa-times" onclick="closeModal('settingsModal')"></i>
             </div>
-            <div class="setting-row">
+            <div class="settings-item">
+                <span data-t="dark_mode">Dark Mode</span>
+                <label class="switch"><input type="checkbox" id="darkModeToggle" onchange="toggleTheme(this)"><span class="slider"></span></label>
+            </div>
+             <div class="settings-item">
                 <span data-t="language_title">Language</span>
                 <select id="langSelect" onchange="toggleLanguage(this.value)">
-                    <option value="en">English (EN)</option>
-                    <option value="my">မြန်မာ (MY)</option>
-                    <option value="th">ไทย (TH)</option>
+                    <option value="en">English</option>
+                    <option value="my">မြန်မာ</option>
+                    <option value="th">ไทย</option>
                 </select>
             </div>
         </div>
     </div>
 
-    <div class="modal" id="authModal">
-    <div class="modal-content" id="authModalContent">
-    <h3><span id="authTitle">Guest Account Login / Register</span></h3>
-    
-    <div class="input-group">
-        <label>Username (ဥပမာ: NayMin23)</label>
-        <input type="text" id="guestUsername" placeholder="Enter your username" required>
-    </div>
-    
-    <button class="order-btn" style="background-color: #4CAF50;" onclick="guestSignIn()">
-        <i class="fas fa-user-tag" style="margin-right: 8px;"></i> Guest အကောင့် ဝင်ရောက်/ဖန်တီးမည်
-    </button>
-    </div>
-        
-    </div>
-    
-            
-            <div id="registerForm" style="display:none;">
-                <div class="input-group"><label data-t="name_label">Name</label><input type="text" id="rName"></div>
-                <div class="input-group"><label data-t="phone_label">Phone</label><input type="tel" id="rPhone"></div>
-                <button class="order-btn" id="sendOtpRegisterBtn" onclick="sendOtp('register')" data-t="register_btn">Send OTP Code</button>
-                
-                 <div id="verifyOtpRegister" style="display:none; margin-top:10px;">
-                    <p style="font-size:12px; color:var(--accent-color); text-align:center;">OTP code sent to your phone. Enter below:</p>
-                    <div class="input-group"><label data-t="pass_label">OTP Code</label><input type="text" id="rOtp"></div>
-                    <button class="order-btn" onclick="verifyOtp('register')" data-t="register_btn">Verify OTP & Register</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal" id="historyModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('historyModal')">&times;</span>
-            <h3 data-t="history_title">My Orders</h3>
-            <div id="historyList"><p style="text-align:center;">Loading...</p></div>
-            <button class="order-btn" onclick="doLogout()" style="background:#d32f2f; margin-top:20px;" data-t="logout_btn">Logout</button>
-        </div>
-    </div>
-    
     <div class="modal" id="detailsModal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('detailsModal')">&times;</span>
-            <div id="detailContent">
-                <img id="detail-img" src="" style="width:100%; height:300px; object-fit:cover; border-radius:10px; margin-bottom:15px;">
-                <h3 id="detail-name" style="margin-top:0;"></h3>
-                <div id="detail-price" style="font-weight:bold; font-size:18px; color:var(--accent-color); margin-bottom:15px;"></div>
-                
-                <div style="margin-bottom: 20px;">
-                    <div class="input-group">
-                        <label>Size (အရွယ်အစား)</label>
-                        <select id="sizeSelect"></select>
-                    </div>
-                    <div class="input-group">
-                        <label>Color (အရောင်)</label>
-                        <select id="colorSelect"></select>
-                    </div>
-                    <div class="input-group">
-                        <label>Quantity (အရေအတွက်)</label>
-                        <input type="number" id="quantityInput" value="1" min="1">
-                    </div>
-                </div>
-
-                <p id="detail-description" style="font-size:14px; color:#666; border-top:1px solid #eee; padding-top:15px;">No description available.</p>
-                
-                <button class="order-btn" id="buyNowBtn" onclick="openCheckoutFromDetails()">Buy Now</button>
+            <div class="modal-header">
+                <h3 id="detail-name">Product Name</h3>
+                <i class="fas fa-times" onclick="closeModal('detailsModal')"></i>
             </div>
+            <img id="detail-img" src="https://via.placeholder.com/300" style="width:100%; height:auto; border-radius:5px; margin-bottom:10px;">
+            <p id="detail-price" style="font-weight:bold; font-size:1.2em; color:var(--accent-color);">45,000 Ks</p>
+            <p id="detail-description" style="font-size:0.9em; color:#666;"></p>
+
+            <div class="input-group">
+                <label>Size</label>
+                <select id="sizeSelect"></select>
+            </div>
+            <div class="input-group">
+                <label>Color</label>
+                <select id="colorSelect" onchange="updateDetailsImage(this.value)"></select>
+            </div>
+             <div class="input-group">
+                <label>Quantity</label>
+                <input type="number" id="quantityInput" value="1" min="1">
+            </div>
+
+            <button class="order-btn" onclick="openCheckoutFromDetails()">Buy Now</button>
+        </div>
+    </div>
+
+    <div class="modal" id="authModal">
+        <div class="modal-content" id="authModalContent">
+            <h3><span id="authTitle">Guest Account Login / Register</span></h3>
+            
+            <div class="input-group">
+                <label>Username (ဥပမာ: NayMin23)</label>
+                <input type="text" id="guestUsername" placeholder="Enter your username" required>
+            </div>
+            
+            <button class="order-btn" style="background-color: #4CAF50;" onclick="guestSignIn()">
+                <i class="fas fa-user-tag" style="margin-right: 8px;"></i> Guest အကောင့် ဝင်ရောက်/ဖန်တီးမည်
+            </button>
+            
+            </div>
+        <div style="text-align:center; padding:10px;"><a href="#" onclick="doLogout(); closeModal('authModal');" style="color:var(--accent-color);">Logout (Test)</a></div>
+    </div>
+
+
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-t="history_title">My Orders</h3>
+                <i class="fas fa-times" onclick="closeModal('historyModal')"></i>
+            </div>
+            <div id="historyList">
+                <p>Loading orders...</p>
+            </div>
+            <button class="order-btn" onclick="doLogout(); closeModal('historyModal');" data-t="logout_btn" style="background:crimson; margin-top:10px;">ထွက်မည်</button>
         </div>
     </div>
 
     <div class="modal" id="checkoutModal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('checkoutModal')">&times;</span>
-            <h3 data-t="order_form">Order Form</h3>
-            <div style="border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:15px; display:flex; gap:10px;">
-                <img id="modal-img" src="" style="width:60px; height:60px; object-fit:cover; border-radius:5px;">
-                <div><div id="modal-name" style="font-weight:bold;"></div><div id="modal-price" style="color:var(--accent-color);"></div></div>
+            <div class="modal-header">
+                <h3 data-t="order_form">Order Form</h3>
+                <i class="fas fa-times" onclick="closeModal('checkoutModal')"></i>
+            </div>
+            <div class="checkout-summary">
+                 <img id="modal-img" src="https://via.placeholder.com/100" style="width:100px; height:100px; object-fit:cover; border-radius:5px;">
+                 <div style="flex:1;"><p id="modal-name">Product Name (Size: M, Qty: 1)</p><p id="modal-price" style="font-weight:bold; color:var(--accent-color);">45,000 Ks</p></div>
             </div>
             
-            <div class="pay-row">
-                <img src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a6/6d/f2/a66df291-0b98-0535-4001-420593406989/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/246x0w.webp" class="pay-icon"> 
-                <div><b>KPay</b><br><small>09********* ( Mu )</small></div>
-            </div>
-            <div class="pay-row">
-                <img src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a6/6d/f2/a66df291-0b98-0535-4001-420593406989/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/246x0w.webp" class="pay-icon"> 
-                <div><b>KPay</b><br><small>09********* ( Mu )</small></div>
-            </div>
-            <div class="pay-row">
-                <img src="https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/96/d9/92/96d99262-2375-8345-2631-661213202873/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/246x0w.webp" class="pay-icon"> 
-                <div><b>Wave Money</b><br><small>09********* ( Mu )</small></div>
-            </div>
-            
-            <div style="margin-top: 15px;">
+            <div class="checkout-form">
                 <div class="input-group">
                     <label data-t="address_label">Delivery Address (ပို့ဆောင်ရန်လိပ်စာ)</label>
                     <textarea id="addressInput" rows="3"></textarea>
@@ -195,7 +190,7 @@
                 </div>
                 <div class="input-group">
                     <label data-t="note_label">Note (အကြောင်းအရာ)</label>
-                    <input type="text" id="noteInput" placeholder="Note">
+                    <input type="text" id="noteInput" placeholder="Note" readonly> 
                 </div>
             </div>
 
@@ -216,5 +211,7 @@
     <div id="snackbar"></div>
 
     <script src="script.js"></script>
+    
 </body>
-</html>
+        </html>
+        
