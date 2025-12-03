@@ -94,33 +94,19 @@
     </div>
 
     <div class="modal" id="authModal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeModal('authModal')">&times;</span>
-        <h3 data-t="login_title" style="text-align:center;">LOGIN / REGISTER</h3>
-
-        <div id="authForm" style="display:block;">
-            <p data-t="auth_info" style="text-align:center;">Use **Email** for Magic Link (OTP) login.</p>
-            
-            <input type="email" id="emailInput" placeholder="Enter your email address" required style="margin-bottom:15px;"> 
-            
-            <button class="order-btn" onclick="startAuth()" data-t="send_otp_btn">Send Magic Link / OTP</button>
-        </div>
-
-        <div id="otpForm" style="display:none; margin-top:20px;">
-            <p data-t="otp_info" style="font-size:12px; color:var(--accent-color); text-align:center;">Enter the 6-digit code sent to your email.</p>
-            <input type="text" id="otpInput" placeholder="6-digit code">
-            
-            <button class="order-btn" onclick="verifyOtp('login')" data-t="verify_login_btn">Verify & Login</button>
-            <button class="order-btn" id="showRegFormBtn" onclick="showAuthForm('register')" style="display:none; margin-top:10px; background:#4CAF50;">Complete Registration</button>
-        </div>
-        
-        <div id="registerForm" style="display:none; margin-top:20px;">
-            <h4 style="text-align:center;">Complete Your Profile</h4>
-            <div class="input-group"><label data-t="name_label">Name</label><input type="text" id="registerName" required></div>
-            <button class="order-btn" onclick="verifyOtp('register')">Register & Login</button>
-        </div>
-
+    <div class="modal-content" id="authModalContent">
+    <h3><span id="authTitle">Guest Account Login / Register</span></h3>
+    
+    <div class="input-group">
+        <label>Username (ဥပမာ: NayMin23)</label>
+        <input type="text" id="guestUsername" placeholder="Enter your username" required>
     </div>
+    
+    <button class="order-btn" style="background-color: #4CAF50;" onclick="guestSignIn()">
+        <i class="fas fa-user-tag" style="margin-right: 8px;"></i> Guest အကောင့် ဝင်ရောက်/ဖန်တီးမည်
+    </button>
+    </div>
+        
     </div>
     
             
