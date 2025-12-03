@@ -6,6 +6,7 @@
     <title>Fashion Lab</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <link rel="stylesheet" href="style.css"> 
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
@@ -51,7 +52,7 @@
         <div class="menu-footer">
             <div class="menu-item" onclick="openSettings()"><i class="fas fa-cog"></i> <span data-t="settings_title">Settings</span></div>
             <div class="menu-item" onclick="checkAuth()"><i class="fas fa-history"></i> <span data-t="history_title">My Orders</span></div>
-            </div>
+        </div>
     </div>
     
     <div class="content">
@@ -149,8 +150,7 @@
             <button class="order-btn" style="background-color: #4CAF50;" onclick="guestSignIn()">
                 <i class="fas fa-user-tag" style="margin-right: 8px;"></i> Guest အကောင့် ဝင်ရောက်/ဖန်တီးမည်
             </button>
-            
-            </div>
+        </div>
         <div style="text-align:center; padding:10px;"><a href="#" onclick="doLogout(); closeModal('authModal');" style="color:var(--accent-color);">Logout (Test)</a></div>
     </div>
 
@@ -164,7 +164,7 @@
             <div id="historyList">
                 <p>Loading orders...</p>
             </div>
-            <button class="order-btn" onclick="doLogout(); closeModal('historyModal');" data-t="logout_btn" style="background:crimson; margin-top:10px;">ထွက်မည်</button>
+             <button class="order-btn" onclick="doLogout(); closeModal('historyModal');" data-t="logout_btn" style="background:crimson; margin-top:10px;">ထွက်မည်</button>
         </div>
     </div>
 
@@ -213,5 +213,4 @@
     <script src="script.js"></script>
     
 </body>
-        </html>
-        
+</html>
