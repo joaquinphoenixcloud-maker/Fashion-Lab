@@ -4,35 +4,58 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const BOT_TOKEN = '8180483853:AAGU6BHy2Ws-PboyopehdBFkWY5kpedJn6Y'; 
 const CHAT_ID = '-5098597126'; 
 
-// **[ပြင်ဆင်ပြီး]**: Phone Auth Domain ကို ဖြုတ်လိုက်သည်။
-// const AUTH_DOMAIN = '@kshop.com'; 
+// ... CONFIG များ၏ အောက်နားတွင် ထားပါ
+// Custom domain / AUTH_DOMAIN ကို ဖျက်လိုက်ပါ
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentProducts = [];
-// currentUser now stores the profile data fetched from the 'users' table
+// currentUser တွင် user profile data ကို သိမ်းမည်
 let currentUser = null; 
 let selectedProduct = null; 
-// **[ပြင်ဆင်ပြီး]**: Variable to hold the email address during the OTP flow
-let currentAuthEmail = null; 
-let currentLanguage = 'my';
+// Auth Logic များအားလုံး ဖျက်ပြီးပြီ
 
-// --- SESSION LISTENER (CRITICAL FOR MAGIC LINK REDIRECT) ---
-// Magic Link နှိပ်ပြီးနောက် Session ကို စစ်ဆေးပြီး Redirect လုပ်ပေးမည့် Code
-supabase.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-        closeModal('authModal');
-        // Load the user profile after authentication
-        await loadUserSession(); 
-        
-        // Admin ဖြစ်မဖြစ် စစ်ပြီး သက်ဆိုင်ရာ Page သို့ Redirect လုပ်သည်
-        if (currentUser && currentUser.is_admin) {
-            window.location.href = 'admin.html';
-        } else {
-             // Home Page သို့ ပြန်ပို့သည်
-             window.location.href = 'index.html'; 
+// Global Function (Login/Redirect လုပ်ဖို့)
+async function loadUserSession() {
+    // Guest စနစ်တွင်၊ ဒီနေရာမှာ User ID (username) ကို localStorage မှ စစ်ဆေးမည်
+    const username = localStorage.getItem('guest_username');
+    if (!username) {
+        currentUser = null;
+        updateUserUI();
+        // Admin Page ကို မလိုလားအပ်ဘဲ ဝင်နေရင် Home ကို ပြန်ပို့
+        if (window.location.pathname.includes('admin.html')) {
+            window.location.href = 'index.html';
         }
+        return;
     }
-});
+
+    // Username ရှိနေရင် database ကနေ User Profile ကို ယူ
+    const { data: profile, error } = await supabase
+        .from('users')
+        .select(`*`)
+        .eq('username', username)
+        .single();
+    
+    if (error || !profile) {
+        console.error('Guest Profile Not Found/Error:', error);
+        localStorage.removeItem('guest_username'); // Local storage ကနေ ဖျက်
+        currentUser = null;
+        updateUserUI();
+        return;
+    }
+
+    currentUser = profile;
+    updateUserUI();
+
+    // အကယ်၍ Admin ဖြစ်ခဲ့ရင် Admin Page ကို ပို့
+    if (currentUser.is_admin && !window.location.pathname.includes('admin.html')) {
+        window.location.href = 'admin.html';
+    } 
+    // Admin မဟုတ်ဘဲ admin page မှာ ရှိနေရင် Home ကို ပို့
+    else if (!currentUser.is_admin && window.location.pathname.includes('admin.html')) {
+        window.location.href = 'index.html';
+    }
+}
+
 
 
 // --- TRANSLATION MAP (EN, MY, TH) ---
