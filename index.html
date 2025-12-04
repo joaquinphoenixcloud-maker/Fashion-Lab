@@ -227,26 +227,6 @@
     <div id="snackbar"></div>
 
     <script src="script.js"></script>
-
-    <script>
-        // UI Helper function for Auth Modal tab switching
-        function switchAuthTab(tabId) {
-            document.querySelectorAll('#authModal .tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('#authModal .tab-content').forEach(content => content.style.display = 'none');
-
-            document.querySelector(`#authModal .tab-btn[onclick*='${tabId}']`).classList.add('active');
-            document.getElementById(tabId).style.display = 'block';
-        }
-        
-        // UI Helper function to close modal when clicking outside of the content box
-        function closeModalOnBackground(event, modalId) {
-            const modal = document.getElementById(modalId);
-            if (event.target === modal) {
-                closeModal(modalId);
-            }
-        }
-    </script>
     
 </body>
-    </html>
-    
+</html>
