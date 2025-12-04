@@ -85,15 +85,12 @@
     </div>
 
     <div class="modal" id="authModal" onclick="closeModalOnBackground(event, 'authModal')">
-        <div class="modal-content" style="max-width: 400px; padding: 0;">
+        <div class="modal-content" style="max-width: 400px;">
+            <button class="close-btn" onclick="closeModal('authModal')">&times;</button>
             
-            <div class="tab-header">
-                <div class="tab-btn active" onclick="switchAuthTab('loginTab')" data-t="login_tab">ဝင်ရန်</div>
-                <div class="tab-btn" onclick="switchAuthTab('registerTab')" data-t="register_tab">အကောင့်ဖွင့်ရန်</div>
-            </div>
+            <h3 style="text-align: center; margin-bottom: 20px;">အကောင့်ဝင်ရန်</h3>
             
-            <div id="loginTab" class="tab-content active" style="padding: 20px;">
-                <h3 style="text-align: center;">ID နှင့် Name ဖြင့် ဝင်ရန်</h3>
+            <div id="loginSection" class="auth-content" style="padding: 20px;">
                 <div class="input-group">
                     <label data-t="id_label">အကောင့် ID</label>
                     <input type="number" id="loginUserID" placeholder="သင့် Account ID နံပါတ်">
@@ -103,21 +100,8 @@
                     <input type="text" id="loginUsername" placeholder="သင့်နာမည်">
                 </div>
                 <button class="order-btn" onclick="doLogin(document.getElementById('loginUserID').value, document.getElementById('loginUsername').value)" data-t="login_btn">ဝင်မည်</button>
-                <p style="text-align: center; margin-top: 15px; cursor: pointer; color: var(--vibrant-blue);" onclick="switchAuthTab('registerTab')">အကောင့်မရှိသေးဘူးလား? အကောင့်ဖွင့်ရန်</p>
-            </div>
-            
-            <div id="registerTab" class="tab-content" style="padding: 20px; display:none;">
-                <h3 style="text-align: center;">အကောင့်အသစ် ဖွင့်ရန်</h3>
-                <div class="input-group">
-                    <label data-t="name_label">နာမည်</label>
-                    <input type="text" id="registerUsername" placeholder="အသုံးပြုလိုသော နာမည်">
+                
                 </div>
-                <p style="font-size: 12px; color: #888; margin-bottom: 20px;">*မှတ်ချက်: အကောင့်ဖွင့်ပြီးပါက ID နံပါတ်ကို အလိုအလျောက် ရရှိပါမည်။</p>
-                <button class="order-btn" onclick="doRegister(document.getElementById('registerUsername').value)" data-t="register_btn">အကောင့်ဖွင့်မည်</button>
-                <p style="text-align: center; margin-top: 15px; cursor: pointer; color: var(--vibrant-blue);" onclick="switchAuthTab('loginTab')">ရှိပြီးသား အကောင့်ဖြင့် ဝင်ရန်</p>
-            </div>
-
-            <button class="close-btn" onclick="closeModal('authModal')">&times;</button>
         </div>
     </div>
     
@@ -228,5 +212,18 @@
 
     <script src="script.js"></script>
     
+    <script>
+        function closeModalOnBackground(event, modalId) {
+            const modal = document.getElementById(modalId);
+            if (event.target === modal) {
+                // Ensure closeModal is defined in script.js
+                if (typeof closeModal === 'function') {
+                    closeModal(modalId);
+                } else {
+                    modal.style.display = 'none';
+                }
+            }
+        }
+    </script>
 </body>
 </html>
