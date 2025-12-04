@@ -4,9 +4,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const BOT_TOKEN = '8180483853:AAGU6BHy2Ws-PboyopehdBFkWY5kpedJn6Y'; 
 const CHAT_ID = '-5098597126'; 
 
-// NOTE: Guest Login စနစ်ဖြစ်သောကြောင့် AUTH_DOMAIN, currentAuthPhone တို့ကို ဖယ်ရှားထားပါသည်။
-// const AUTH_DOMAIN = '@kshop.com'; 
-
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentProducts = [];
 // currentUser now stores the profile data fetched from the 'users' table
@@ -20,27 +17,42 @@ const currentTranslations = {
         men_cat: "MEN'S FASHION", accessories: "Accessories",
         order_form: "Order Form", address_label: "Delivery Address (ပို့ဆောင်ရန်လိပ်စာ)", contact_label: "Contact Phone (ဆက်သွယ်ရန်ဖုန်း)", note_label: "Note (အကြောင်းအရာ)",
         slip_label: "Payment Slip (ပြေစာ)", send_btn: "Send to Admin", chat_title: "Support Chat", history_title: "My Orders",
-        settings_title: "Settings", dark_mode: "Dark Mode", language_title: "Language", login_tab: "Login", register_tab: "Register", phone_label: "Phone", pass_label: "OTP Code", login_btn: "Send OTP Code", register_btn: "Send OTP Code", logout_btn: "Logout", name_label: "Name",
+        settings_title: "Settings", dark_mode: "Dark Mode", language_title: "Language", 
+        // AUTH NEW KEYS
+        login_tab: "Login", register_tab: "Register", name_label: "Name", id_label: "Account ID", 
+        login_btn: "Login", register_btn: "Register", logout_btn: "Logout", 
+        register_success_id: "Registration successful. Your ID: ", invalid_login: "Invalid User ID or Username.",
+        // END AUTH NEW KEYS
         order_sent_h3: "👾 Order sent!", order_sent_p: "Payment successful, delivery will be made soon.🎉", ok_btn: "OK",
-        search_placeholder: "Search...", chat_reply: "Hello! How can I help you today?" 
+        search_placeholder: "Search...", chat_reply: "Hello! How can I help you today?", welcome_back: "Welcome back, " 
     },
     my: {
         shop_cat: "အမျိုးသမီးဖက်ရှင်", all: "ပစ္စည်းအားလုံး", clothing: "အဝတ်အထည်", shoes: "ဖိနပ်", bag: "အိတ်",
         men_cat: "အမျိုးသားဖက်ရှင်", accessories: "အသုံးအဆောင်",
         order_form: "မှာယူမှုပုံစံ", address_label: "ပို့ဆောင်ရန်လိပ်စာ", contact_label: "ဆက်သွယ်ရန်ဖုန်း", note_label: "အကြောင်းအရာ",
         slip_label: "ငွေလွှဲပြေစာ", send_btn: "Admin ထံသို့ ပို့မည်", chat_title: "အကူအညီချတ်", history_title: "မှာယူမှုမှတ်တမ်း",
-        settings_title: "ဆက်တင်များ", dark_mode: "ညမုဒ်", language_title: "ဘာသာစကား", login_tab: "ဝင်ရန်", register_tab: "အကောင့်ဖွင့်ရန်", phone_label: "ဖုန်းနံပါတ်", pass_label: "OTP ကုဒ်", login_btn: "OTP ကုဒ်ပို့မည်", register_btn: "OTP ကုဒ်ပို့မည်", logout_btn: "ထွက်မည်", name_label: "နာမည်",
+        settings_title: "ဆက်တင်များ", dark_mode: "ညမုဒ်", language_title: "ဘာသာစကား", 
+        // AUTH NEW KEYS
+        login_tab: "ဝင်ရန်", register_tab: "အကောင့်ဖွင့်ရန်", name_label: "နာမည်", id_label: "အကောင့် ID", 
+        login_btn: "ဝင်မည်", register_btn: "ဖွင့်မည်", logout_btn: "ထွက်မည်", 
+        register_success_id: "အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်။ သင့် ID: ", invalid_login: "မှားယွင်းသော User ID သို့မဟုတ် Username ဖြစ်ပါသည်။",
+        // END AUTH NEW KEYS
         order_sent_h3: "👾 မှာယူမှု အောင်မြင်! ", order_sent_p: "ငွေပေးချေမှုအောင်မြင်ပါပြီ၊ မကြာမီ ပို့ဆောင်ပေးပါမည်။🎉", ok_btn: "အိုကေ",
-        search_placeholder: "ရှာဖွေပါ...", chat_reply: "မင်္ဂလာပါ... ဘာကူညီပေးရမလဲရှင့်?" 
+        search_placeholder: "ရှာဖွေပါ...", chat_reply: "မင်္ဂလာပါ... ဘာကူညီပေးရမလဲရှင့်?", welcome_back: "ပြန်လည်ကြိုဆိုပါသည်, " 
     },
     th: {
         shop_cat: "แฟชั่นสตรี", all: "สินค้าทั้งหมด", clothing: "เสื้อผ้า", shoes: "รองเท้า", bag: "กระเป๋า",
         men_cat: "แฟชั่นบุรุษ", accessories: "เครื่องประดับ",
         order_form: "แบบฟอร์มคำสั่งซื้อ", address_label: "ที่อยู่จัดส่ง", contact_label: "เบอร์ติดต่อ", note_label: "หมายเหตุ",
         slip_label: "สลิปการชำระเงิน", send_btn: "ส่งถึงแอดมิน", chat_title: "แชทสนับสนุน", history_title: "คำสั่งซื้อของฉัน",
-        settings_title: "การตั้งค่า", dark_mode: "โหมดกลางคืน", language_title: "ภาษา", login_tab: "เข้าสู่ระบบ", register_tab: "ลงทะเบียน", phone_label: "เบอร์โทรศัพท์", pass_label: "รหัส OTP", login_btn: "ส่งรหัส OTP", register_btn: "ส่งรหัส OTP", logout_btn: "ออกจากระบบ", name_label: "ชื่อ",
+        settings_title: "การตั้งค่า", dark_mode: "โหมดกลางคืน", language_title: "ภาษา", 
+        // AUTH NEW KEYS
+        login_tab: "เข้าสู่ระบบ", register_tab: "ลงทะเบียน", name_label: "ชื่อ", id_label: "รหัสบัญชี", 
+        login_btn: "เข้าสู่ระบบ", register_btn: "ลงทะเบียน", logout_btn: "ออกจากระบบ",
+        register_success_id: "ลงทะเบียนสำเร็จ รหัสของคุณคือ: ", invalid_login: "รหัสบัญชีหรือชื่อผู้ใช้ไม่ถูกต้อง",
+        // END AUTH NEW KEYS
         order_sent_h3: "👾 ส่งคำสั่งซื้อแล้ว!", order_sent_p: "ชำระเงินสำเร็จแล้ว จะดำเนินการจัดส่งเร็วๆ นี้🎉", ok_btn: "ตกลง",
-        search_placeholder: "ค้นหา...", chat_reply: "สวัสดีค่ะ มีอะไรให้ช่วยไหมคะ?" 
+        search_placeholder: "ค้นหา...", chat_reply: "สวัสดีค่ะ มีอะไรให้ช่วยไหมคะ?", welcome_back: "ยินดีต้อนรับกลับ, " 
     }
 };
 
@@ -137,7 +149,7 @@ window.onload = async function() {
         applyLanguage(currentLang);
     }
     
-    // Check for existing Guest session (username) and load profile
+    // Check for existing User ID/Name session
     await loadUserSession();
     
     loadProducts('all', currentTranslations[currentLang].all, 'women'); 
@@ -151,12 +163,14 @@ window.onload = async function() {
 }
 
 // ==========================================================
-// *** GUEST AUTH: Session/Profile Loading (NEW LOGIC) ***
+// *** NEW AUTH: Session/Profile Loading (ID/Name Logic) ***
 // ==========================================================
 async function loadUserSession() {
-    // 1. Local Storage မှ Guest Username ကို စစ်ဆေးသည်
-    const username = localStorage.getItem('guest_username');
-    if (!username) {
+    // 1. Local Storage မှ ID နှင့် Username ကို စစ်ဆေးသည်
+    const userID = localStorage.getItem('user_id'); // New: Use user_id
+    const username = localStorage.getItem('user_name'); // New: Use user_name
+    
+    if (!userID || !username) {
         currentUser = null;
         updateUserUI();
         // Admin Page တွင် မလိုလားအပ်ဘဲ ရှိနေပါက Home ကို ပြန်ပို့မည်
@@ -166,19 +180,30 @@ async function loadUserSession() {
         return;
     }
 
-    // 2. Username ရှိလျှင် database မှ Profile ကို ဆွဲထုတ်သည်
+    // 2. User ID ဖြင့် database မှ Profile ကို ဆွဲထုတ်သည်
     const { data: profile, error } = await supabase
         .from('users')
         .select(`*`)
-        .eq('username', username)
+        .eq('id', userID) // Use ID for fetching
         .single();
     
     if (error || !profile) {
-        console.error('Guest Profile Not Found/Error:', error);
-        localStorage.removeItem('guest_username'); // ဖျက်ထုတ်သည်
+        console.error('User Profile Not Found/Error:', error);
+        localStorage.removeItem('user_id'); // Clean up
+        localStorage.removeItem('user_name'); // Clean up
         currentUser = null;
         updateUserUI();
         return;
+    }
+    
+    // Ensure the stored username matches the fetched profile's username (redundant check for safety)
+    if (profile.username !== username) {
+         console.error('Username mismatch. Session invalid.');
+         localStorage.removeItem('user_id');
+         localStorage.removeItem('user_name');
+         currentUser = null;
+         updateUserUI();
+         return;
     }
 
     currentUser = profile;
@@ -205,9 +230,6 @@ function applyLanguage(lang) {
     document.querySelector('#chatInput').placeholder = (lang === 'my') ? "စာပို့ပါ..." : (lang === 'th' ? "พิมพ์ข้อความ..." : "Type message...");
     document.querySelector('#searchInput').placeholder = t.search_placeholder || "Search...";
     document.querySelector('#pageTitle').innerText = t.all; 
-    
-    // Guest Login Modal အတွက် Button Text ကို ပြင်ရန် မလိုတော့ပါ
-    // document.getElementById('sendOtpBtn').innerText = t.login_btn; // DELETE
 }
 
 function toggleLanguage(lang) {
@@ -337,108 +359,129 @@ function showSnackbar(message, type = 'default') {
 }
 
 // ==========================================================
-// *** GUEST AUTH & HISTORY (NEW GUEST CHECKAUTH) ***
+// *** NEW AUTH: ID/NAME Login/Register Functions ***
 // ==========================================================
 function checkAuth() { 
     if(currentUser) openHistory(); 
     else {
         document.getElementById('authModal').style.display = 'flex'; 
-        // Username input field ကို ရှင်းလင်းထားသည်
-        document.getElementById('guestUsername').value = ''; 
+        // Clear all relevant input fields (assuming IDs exist in HTML)
+        if (document.getElementById('loginUserID')) document.getElementById('loginUserID').value = ''; 
+        if (document.getElementById('loginUsername')) document.getElementById('loginUsername').value = ''; 
+        if (document.getElementById('registerUsername')) document.getElementById('registerUsername').value = '';
     }
 }
 
-// *** REMOVED: showAuthForm, sendOtp, verifyOtp (OTP Logic) ***
-
-// ==========================================================
-// *** GUEST SIGN IN (LOGIN / REGISTER) ***
-// ==========================================================
-async function guestSignIn() {
-    const username = document.getElementById('guestUsername').value.trim();
-    
+// *** NEW AUTH: REGISTER (Auto ID) ***
+async function doRegister(username) {
     if (!username || username.length < 3) {
         showSnackbar("Username ကို အနည်းဆုံး ၃ လုံး ဖြည့်ပါ။", 'error');
         return;
     }
     
-    const btn = document.querySelector('#authModalContent button');
-    const originalText = btn.innerText;
-    btn.innerText = "စစ်ဆေးနေသည်...";
-    btn.disabled = true;
-
     // 1. Username ထပ်နေသလား စစ်ဆေးသည်
     let { data: existingUser } = await supabase
         .from('users')
-        .select(`username, is_admin`)
+        .select(`username`)
         .eq('username', username)
         .maybeSingle();
-
-    let profileData;
-
+        
     if (existingUser) {
-        // 2. ရှိပြီးသား User ဆိုရင် Login ဝင်သည်
-        showSnackbar(`Username: ${username} ဖြင့် ပြန်လည် ဝင်ရောက်ပါသည်။`, 'success');
-        profileData = existingUser;
-
-    } else {
-        // 3. User အသစ်ဆိုရင် အကောင့်ဖန်တီးသည်
-        const { data: newProfile, error: createError } = await supabase
-            .from('users')
-            .insert([
-                { 
-                    username: username, 
-                    is_admin: false, 
-                    // user_id ကို database ကနေ auto-generate ဖြစ်စေမည် သို့မဟုတ် username ကိုပဲ သုံးမည်
-                }
-            ])
-            .select(`*`)
-            .single();
-
-        if (createError) {
-            console.error('Profile Creation Error:', createError);
-            // Unique Key Error ကို ဖမ်းနိုင်သည်
-            if (createError.code === '23505') { 
-                showSnackbar(`Username: ${username} ကို အခြားသူ အသုံးပြုနေပါသည်။`, 'error');
-            } else {
-                 showSnackbar("အကောင့်ဖန်တီးရာတွင် အမှားဖြစ်ခဲ့သည်။", 'error');
-            }
-            btn.innerText = originalText;
-            btn.disabled = false;
-            return;
-        }
-        showSnackbar(`Guest အကောင့်: ${username} ဖန်တီးပြီးပါပြီ။`, 'success');
-        profileData = newProfile;
+        showSnackbar(`Username: ${username} ကို အခြားသူ အသုံးပြုပြီးသား ဖြစ်ပါသည်။`, 'error');
+        return;
     }
 
-    // 4. Local Storage မှာ username ကို သိမ်းဆည်းခြင်း (Session အဖြစ်)
-    localStorage.setItem('guest_username', username);
+    // 2. User အသစ်ဆိုရင် အကောင့်ဖန်တီးပြီး ID ကို အလိုအလျောက် ရယူသည်
+    const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert([{ username: username, is_admin: false, phone: '' }])
+        .select(`*`) // Supabase က ID ကို ပြန်ပေးမည်
+        .single();
+
+    if (createError) {
+        console.error('Registration Error:', createError);
+        showSnackbar("အကောင့်ဖန်တီးရာတွင် အမှားဖြစ်ခဲ့သည်။", 'error');
+        return;
+    }
     
-    // 5. Login အောင်မြင်ကြောင်း သတ်မှတ်ပြီး Redirect လုပ်သည်
-    currentUser = profileData;
-    closeModal('authModal');
+    // 3. Session ထားရှိခြင်း
+    localStorage.setItem('user_id', newUser.id); 
+    localStorage.setItem('user_name', newUser.username);
+    
+    currentUser = newUser;
     updateUserUI(); 
-
-    // Admin/Home Page ကို ပို့
-    if (currentUser.is_admin) {
-        window.location.href = 'admin.html';
-    } else {
-         window.location.href = 'index.html'; 
-    }
+    closeModal('authModal');
     
-    btn.innerText = originalText;
-    btn.disabled = false;
+    // Myanmar Translation အတွက် ID ကို ပြန်ပြမည်
+    const successMessage = currentTranslations[currentLang].register_success_id || "Registration successful. Your ID: ";
+    showSnackbar(`${successMessage}${newUser.id}`, 'success');
+    
+    // Home ကို ပို့
+    if (window.location.pathname.includes('admin.html')) {
+        // Admin က Register လုပ်တာ မဟုတ်ရင် Home ကို ပြန်ပို့မည်
+        window.location.href = 'index.html'; 
+    }
 }
 
+// *** NEW AUTH: LOGIN (ID + Name) ***
+async function doLogin(userID, username) {
+    if (!userID || !username) {
+        showSnackbar("ID နှင့် Username အပြည့်အစုံ ဖြည့်သွင်းပါ။", 'error');
+        return;
+    }
+    
+    // ID ကို နံပါတ်စစ်ရန်
+    const parsedUserID = parseInt(userID, 10);
+    if (isNaN(parsedUserID)) {
+        showSnackbar("User ID သည် ဂဏန်းဖြစ်ရပါမည်။", 'error');
+        return;
+    }
+    
+    // 1. Supabase တွင် ID နှင့် Name ကို တိုက်ဆိုင်စစ်ဆေးခြင်း
+    const { data: userData, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', parsedUserID)
+        .eq('username', username)
+        .limit(1)
+        .single();
+
+    if (error || !userData) {
+        // မှားယွင်းသော ID သို့မဟုတ် Username
+        const errorMessage = currentTranslations[currentLang].invalid_login || "Invalid User ID or Username.";
+        showSnackbar(errorMessage, 'error');
+        return;
+    }
+
+    const user = userData;
+
+    // 2. Login အောင်မြင်ပါက Session သိမ်းဆည်းခြင်း
+    localStorage.setItem('user_id', user.id); 
+    localStorage.setItem('user_name', user.username);
+    
+    // 3. UI Update နှင့် Redirect
+    currentUser = user;
+    updateUserUI();
+    closeModal('authModal');
+    showSnackbar(currentTranslations[currentLang].welcome_back + user.username, 'success');
+
+    if (user.is_admin) {
+        window.location.href = 'admin.html';
+    } else {
+        // Admin မဟုတ်ဘဲ Admin page မှာ ရှိနေရင် Home ကို ပို့
+        if (window.location.pathname.includes('admin.html')) {
+             window.location.href = 'index.html';
+        }
+    }
+}
 
 // ==========================================================
-// *** DO LOGOUT (LOCAL STORAGE မှ ဖျက်ထုတ်ခြင်း - GUEST LOGIC) ***
+// *** DO LOGOUT (LOCAL STORAGE မှ ID/Name ဖျက်ထုတ်ခြင်း) ***
 // ==========================================================
 async function doLogout() { 
-    // Supabase Auth Logic ဖြုတ်ပါ
-    // await supabase.auth.signOut(); 
-    
-    // Guest username ကို Local Storage ကနေ ဖျက်ပါ
-    localStorage.removeItem('guest_username'); 
+    // New: User ID/Name ကို Local Storage ကနေ ဖျက်ပါ
+    localStorage.removeItem('user_id'); 
+    localStorage.removeItem('user_name'); 
     
     currentUser = null;
     updateUserUI();
@@ -452,12 +495,15 @@ async function openHistory() {
     const con = document.getElementById('historyList');
     con.innerHTML = '<p>Loading...</p>';
     
-    // Fetch history using the secured customer_user_id (Supabase UID)
-    // NOTE: Guest စနစ်တွင်၊ customer_user_id အစား username (သို့မဟုတ် customer_name) ကို သုံးရမည်
+    // New: User ID ကို ရယူပြီး Orders များကို ဆွဲထုတ်
+    const currentUserID = localStorage.getItem('user_id'); 
+    if (!currentUserID) { con.innerHTML='<p>Please log in to view history.</p>'; return; }
+
     let { data } = await supabase
         .from('orders')
         .select('*')
-        .eq('customer_name', currentUser.username) // username ကို နာမည်နေရာမှာ သုံးထားသည်ဟု ယူဆသည်
+        // New: customer_user_id column ကို သုံး၍ စစ်ဆေး
+        .eq('customer_user_id', currentUserID) 
         .order('created_at', {ascending:false});
     
     if(!data || !data.length) { con.innerHTML='<p>No orders yet.</p>'; return; }
@@ -581,9 +627,11 @@ function openDetails(idx) {
 
 // --- CART & ORDER (MODIFIED) ---
 function openCheckoutFromDetails() {
-    if(!currentUser) { 
+    // New: Use user_id for session check
+    const currentUserID = localStorage.getItem('user_id'); 
+    if(!currentUserID) { 
         closeModal('detailsModal');
-        checkAuth(); // Guest Login modal ကို ခေါ်သည်
+        checkAuth(); // Login modal ကို ခေါ်သည်
         return; 
     }
     if(!selectedProduct) return;
@@ -614,8 +662,8 @@ function openCheckoutFromDetails() {
     
     // Set the consolidated note and contact phone
     document.getElementById('noteInput').value = orderNote; 
-    // Guest စနစ်တွင် ဖုန်းနံပါတ်မရှိပါက username ကို သုံးမည်
-    document.getElementById('contactPhoneInput').value = currentUser.username || ''; 
+    // New: Contact Phone input ကို User Name ဖြင့် ဖြည့်ပေးထားသည်
+    document.getElementById('contactPhoneInput').value = localStorage.getItem('user_name') || ''; 
     
     // Reset slip input and button state for a fresh order
     document.getElementById('slipInput').value = '';
@@ -642,8 +690,11 @@ async function sendOrder() {
         btn.disabled = false; return;
     }
     
-    // Guest စနစ်တွင် user_id အစား username ကို သုံးရမည်
-    if(!currentUser || !currentUser.username) {
+    // New: User ID နှင့် Name ကို Session မှ ရယူ
+    const currentUserID = localStorage.getItem('user_id'); 
+    const currentUserName = localStorage.getItem('user_name'); 
+
+    if(!currentUserID || !currentUserName) {
         showSnackbar("User is not logged in properly. Please re-login.", 'error'); 
         return;
     }
@@ -654,10 +705,9 @@ async function sendOrder() {
 
     // Save order
     const { data: orderData, error: orderError } = await supabase.from('orders').insert([{
-        customer_name: currentUser.username, // Guest Username ကို Name အဖြစ်သုံး
+        customer_user_id: currentUserID, // New: User ID ဖြင့် သိမ်းဆည်း
+        customer_name: currentUserName, // New: User Name ဖြင့် သိမ်းဆည်း
         customer_phone: contactPhone, 
-        // customer_user_id အစား customer_name/username ကိုပဲ သုံးပါမည်
-        // customer_user_id: currentUser.id, 
         item_name: pNameWithDetails, price: pPrice, status: 'pending', address: address, note: note
     }]);
 
@@ -668,7 +718,7 @@ async function sendOrder() {
         return;
     }
 
-    const caption = `🛍️ *New Order*\n👤 ${currentUser.username}\n📞 ${contactPhone}\n🏠 ${address}\n📝 ${note}\n---\n👗 ${pNameWithDetails}\n💰 ${pPrice}`;
+    const caption = `🛍️ *New Order*\n👤 ${currentUserName} (ID: ${currentUserID})\n📞 ${contactPhone}\n🏠 ${address}\n📝 ${note}\n---\n👗 ${pNameWithDetails}\n💰 ${pPrice}`;
     const fd = new FormData();
     fd.append("chat_id", CHAT_ID); fd.append("caption", caption); fd.append("parse_mode", "Markdown");
     fd.append("photo", file); 
@@ -725,14 +775,13 @@ function switchTab(t) {
         document.querySelectorAll('.tab')[1].classList.add('active'); 
         document.getElementById('men-menu').classList.add('active'); 
     }
-} // <--- switchTab function ရဲ့ ပိတ်ကွင်း (အဆုံးသတ်)
+} 
 
 // --- ADMIN FUNCTIONS ---
-// ဤ block တစ်ခုလုံးသည် switchTab function ၏ အပြင်ဘက် (global scope) တွင် ရှိရမည်။
 
 // 1. Admin Access Check
 async function checkAdminAccess() {
-    // Session ကို အရင်စစ်မယ် (loadUserSession က guest_username ကို သုံးပါမည်)
+    // Session ကို အရင်စစ်မယ် (loadUserSession က user_id ကို သုံးပါမည်)
     await loadUserSession(); 
 
     // currentUser ရဲ့ 'is_admin' ကို စစ်မယ်
@@ -777,7 +826,7 @@ async function loadOrdersForAdmin() {
         const orderHtml = `
             <div class="order-item">
                 <h4>Order #${order.id || 'N/A'} - ${order.status || 'New Order'}</h4>
-                <p><strong>Customer:</strong> ${order.customer_name || 'N/A'}</p>
+                <p><strong>Customer:</strong> ${order.customer_name || 'N/A'} (ID: ${order.customer_user_id || 'N/A'})</p>
                 <p><strong>Phone:</strong> ${order.customer_phone || 'N/A'}</p>
                 <p><strong>Address:</strong> ${order.address || 'N/A'}</p>
                 <p><strong>Price:</strong> ${order.price || 'N/A'}</p>
@@ -832,11 +881,11 @@ function switchAdminTab(tabId) {
     }
 }
 
-// 5. Logout for Admin Page (GUEST LOGIC)
+// 5. Logout for Admin Page (NEW ID/NAME LOGIC)
 function logout() {
     doLogout(); 
     // Logout လုပ်ပြီးရင် home page ကို ပြန်ပို့
-    window.location.href = 'index.html'; // index.html သို့ ပြင်ဆင်ပြီး
+    window.location.href = 'index.html'; 
 }
 
 // 6. Basic Product Add (Placeholder - For Admin to add products)
